@@ -6,7 +6,7 @@ export const fallbackHomeData: HomeData = {
     judul_hero: "PSHT SMKN DARUL ULUM MUNCAR",
     deskripsi_hero: "Suro Diro Jayaningrat Lebur Dening Pangastuti",
     gambar_hero: "foto-sekolah.webp",
-    gambar_hero1: "foto-sekolah.png",
+    gambar_hero1: "foto-sekolah.webp",
     gambar_hero2: "tentang.png",
     gambar_hero3: "people.png",
     judul_sejarah: "Sejarah Organisasi",

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import VisitorTracker from "@/components/visitor-tracker";
+import "./fonts.css";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://psht-smkndu.vercel.app";
@@ -138,9 +139,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="icon" href="/favicon-16x16.png?v=laravel-transparent-1" type="image/png" sizes="16x16" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=laravel-transparent-1" />
         <link rel="manifest" href="/manifest.webmanifest" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
         <script
           type="application/ld+json"

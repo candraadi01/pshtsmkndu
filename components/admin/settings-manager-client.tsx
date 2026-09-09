@@ -55,6 +55,11 @@ function UniversalImageSlot({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert("Ukuran foto terlalu besar (maksimal 10MB per foto). Mohon pilih file yang lebih kecil.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
       const objectUrl = URL.createObjectURL(file);
       setPreview(objectUrl);
       setIsRemoved(false);
@@ -106,10 +111,14 @@ function UniversalImageSlot({
         <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/50 border border-gray-800 flex items-center justify-center mb-3 group">
           {preview && !isRemoved ? (
             <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={resolveMediaUrl(preview)}
                 alt={title}
                 className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/sh-emblem.png";
+                }}
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                 <button
@@ -200,10 +209,23 @@ export default function SettingsManagerClient({
 }) {
   const [settings] = useState<PageSettingsData | null>(initialSettings);
   const [extSettings] = useState<SiteExtendedSettings | null>(initialExtendedSettings || null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(settings?.logo || null);
   const [videoUrl, setVideoUrl] = useState(settings?.url_video || "");
   const [mapsEmbedUrl, setMapsEmbedUrl] = useState(extSettings?.maps_embed_url || "");
   const [isPending, startTransition] = useTransition();
   const [msg, setMsg] = useState({ text: "", isError: false });
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Ukuran file logo maksimal 5MB.");
+        e.target.value = "";
+        return;
+      }
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -253,12 +275,14 @@ export default function SettingsManagerClient({
           </label>
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-black/60 border border-gray-700 p-2 flex items-center justify-center shrink-0">
-              <Image
-                src={resolveMediaUrl(settings?.logo || "/sh-emblem.png")}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={resolveMediaUrl(logoPreview || "/sh-emblem.png")}
                 alt="Logo Preview"
-                width={56}
-                height={56}
                 className="w-12 h-12 object-contain"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/sh-emblem.png";
+                }}
               />
             </div>
             <div className="flex-1">
@@ -267,6 +291,7 @@ export default function SettingsManagerClient({
                 name="logo_file"
                 accept="image/*"
                 disabled={!isSuperAdmin}
+                onChange={handleLogoChange}
                 className="w-full px-3 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-gray-300 text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:bg-amber-500 file:text-gray-950 disabled:opacity-50"
               />
               <p className="mt-1 text-[11px] text-gray-500">

@@ -18,9 +18,9 @@ export default function Preloader() {
 
     hasLoaded = true;
 
-    // 2.5 detik total durasi animasi
+    // 800ms durasi animasi agar website langsung cepat dan responsif
     const startTime = Date.now();
-    const duration = 2500;
+    const duration = 800;
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
@@ -32,9 +32,9 @@ export default function Preloader() {
         setIsFading(true);
         setTimeout(() => {
           setIsDone(true);
-        }, 700); // Waktu transisi fade out selesai
+        }, 300); // Waktu transisi fade out selesai
       }
-    }, 25);
+    }, 20);
 
     return () => clearInterval(interval);
   }, [shouldSkip]);

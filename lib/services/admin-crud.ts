@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { uploadToCloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatVideoEmbedUrl } from "@/lib/media";
-import { requireAdmin, requireSuperAdmin } from "./auth";
+import { requireAdmin, requireSuperAdmin, getCurrentUserProfile } from "./auth";
 import { logAdminActivity } from "./activity-logger";
 import { saveStoredArticle, deleteStoredArticle } from "./article-store";
 import { saveStoredAnnouncement, deleteStoredAnnouncement } from "./announcement-store";
@@ -637,7 +637,13 @@ export async function deleteEkstrakurikulerAction(id: number) {
 // 7. PAGE SETTINGS (Logo, Hero, Visi Misi, dll - Super Admin Only)
 // ==========================================
 export async function savePageSettingsAction(formData: FormData) {
-  await requireSuperAdmin();
+  const profile = await getCurrentUserProfile();
+  if (!profile || profile.role !== "super_admin") {
+    return {
+      success: false,
+      error: "Akses ditolak: Hanya akun Super Admin yang diizinkan memperbarui pengaturan website.",
+    };
+  }
   const supabase = await createSupabaseServerClient();
 
   const judul_hero = (formData.get("judul_hero") as string) || null;

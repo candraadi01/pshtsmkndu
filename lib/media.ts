@@ -1,6 +1,6 @@
 export function resolveMediaUrl(reference: string | null | undefined) {
   if (!reference) return "/sh-emblem.png";
-  if (/^https?:\/\//i.test(reference)) return reference;
+  if (/^(https?:\/\/|blob:|data:)/i.test(reference)) return reference;
   const clean = reference.replace(/^\/+/, "");
   if (
     clean.startsWith("sh-emblem.png") ||
