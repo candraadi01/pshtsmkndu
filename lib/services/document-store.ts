@@ -65,7 +65,7 @@ export async function getStoredDocuments(): Promise<TipeDokumen[]> {
 
   // 2. Read local
   const local = await readLocalDocuments();
-  if (local && local.length > 0) {
+  if (local !== null) {
     return local;
   }
 

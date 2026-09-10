@@ -60,8 +60,8 @@ export async function getStoredPeople(tipe?: string): Promise<Person[]> {
 
   // 2. Read from persistent local JSON
   let local = await readLocalPeople();
-  if (!local || local.length === 0) {
-    // 3. Initialize from fallbackPeople
+  if (local === null) {
+    // 3. Initialize from fallbackPeople only on first boot
     local = JSON.parse(JSON.stringify(fallbackPeople)) as Person[];
     await writeLocalPeople(local);
 

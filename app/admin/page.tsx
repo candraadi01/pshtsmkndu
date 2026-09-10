@@ -10,27 +10,21 @@ import AdminLiveStats, {
   AdminLiveRecentStudents,
 } from "@/components/admin/admin-live-stats";
 
+import { getStoredPeople } from "@/lib/services/people-store";
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   const profile = await requireAdmin();
   const isSuperAdmin = profile.role === "super_admin";
-  const supabase = await createSupabaseServerClient();
 
-  const [analytics, recentLogs, recentStudentsRes] = await Promise.all([
+  const [analytics, recentLogs, recentStudents] = await Promise.all([
     getDashboardAnalytics(),
     isSuperAdmin ? getAdminActivityLogs(8) : Promise.resolve([]),
     !isSuperAdmin
-      ? supabase
-          .from("people")
-          .select("id, nama, jenis_kelamin, alamat, no_hp, created_at")
-          .eq("tipe", "siswa")
-          .order("created_at", { ascending: false })
-          .limit(6)
-      : Promise.resolve({ data: [] }),
+      ? getStoredPeople("siswa").then((res) => res.slice(0, 6))
+      : Promise.resolve([]),
   ]);
-
-  const recentStudents = recentStudentsRes.data || [];
 
   if (isSuperAdmin) {
     return (

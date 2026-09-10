@@ -58,7 +58,7 @@ export async function getStoredEkstrakurikuler(): Promise<Ekstrakurikuler[]> {
 
   // 2. Read local
   const local = await readLocalEkstrakurikuler();
-  if (local && local.length > 0) {
+  if (local !== null) {
     return local;
   }
 

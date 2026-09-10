@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createOptionalSupabaseClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { getStoredArticles, incrementStoredArticleView, resetStoredArticleViews } from "./article-store";
 import { getStoredAnnouncements } from "./announcement-store";
+import { getStoredPeople } from "./people-store";
+import { getStoredDocuments } from "./document-store";
 import {
   getMetricsResetTimestamp,
   setMetricsResetTimestamp,
@@ -103,8 +105,8 @@ export async function getDashboardAnalytics(): Promise<DashboardMetrics> {
   const [
     totalVisitsRes,
     todayVisitsRes,
-    dokumenRes,
-    peopleRes,
+    allDokumen,
+    allPeople,
     recentVisitsRes,
     allArticles,
     allAnnouncements,
@@ -112,8 +114,8 @@ export async function getDashboardAnalytics(): Promise<DashboardMetrics> {
   ] = await Promise.all([
     totalVisitsQuery,
     todayVisitsQuery,
-    supabase.from("dokumen").select("*", { count: "exact", head: true }),
-    supabase.from("people").select("id, tipe"),
+    getStoredDocuments(),
+    getStoredPeople(),
     recentVisitsQuery,
     getStoredArticles(),
     getStoredAnnouncements(),
@@ -136,10 +138,10 @@ export async function getDashboardAnalytics(): Promise<DashboardMetrics> {
     kategori: a.kategori || "Umum",
   }));
 
-  const people = peopleRes.data || [];
-  const totalPelatih = people.filter((p) => p.tipe === "pelatih").length;
-  const totalWarga = people.filter((p) => p.tipe === "warga").length;
-  const totalSiswa = people.filter((p) => p.tipe === "siswa").length;
+  const totalPelatih = allPeople.filter((p) => p.tipe === "pelatih").length;
+  const totalWarga = allPeople.filter((p) => p.tipe === "warga").length;
+  const totalSiswa = allPeople.filter((p) => p.tipe === "siswa").length;
+  const totalDokumen = allDokumen.reduce((acc, c) => acc + (c.dokumen?.length || 0), 0);
 
   return {
     totalVisits,
@@ -147,7 +149,7 @@ export async function getDashboardAnalytics(): Promise<DashboardMetrics> {
     totalArticleViews,
     totalArticles: allArticles.length,
     totalPengumuman: allAnnouncements.length,
-    totalDokumen: dokumenRes.count ?? 0,
+    totalDokumen,
     totalPelatih,
     totalWarga,
     totalSiswa,

@@ -91,11 +91,11 @@ export async function getHomeData(): Promise<HomeData> {
   const wargaCount = allPeople.filter((p) => p.tipe === "warga").length;
 
   const computedStatistics: PeopleStatistics = {
-    siswa: siswaCount || fallbackHomeData.statistics.siswa,
-    pelatih: pelatihCount || fallbackHomeData.statistics.pelatih,
-    warga: wargaCount || fallbackHomeData.statistics.warga,
-    ekstrakurikuler: mappedExtracurriculars.length || fallbackHomeData.statistics.ekstrakurikuler,
-    galeri: galleries.length || fallbackHomeData.statistics.galeri,
+    siswa: siswaCount,
+    pelatih: pelatihCount,
+    warga: wargaCount,
+    ekstrakurikuler: mappedExtracurriculars.length,
+    galeri: galleries.length,
   };
 
   const statistics: PeopleStatistics = {

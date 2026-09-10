@@ -58,7 +58,7 @@ export async function getStoredGalleries(): Promise<Gallery[]> {
 
   // 2. Read from persistent local JSON
   const local = await readLocalGalleries();
-  if (local !== null && local.length > 0) {
+  if (local !== null) {
     return local;
   }
 
