@@ -16,15 +16,15 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold uppercase tracking-wider mb-2">
           <i className="fa-solid fa-lock text-xs" />
           <span>Area Khusus Super Admin</span>
         </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-          <i className="fa-solid fa-user-shield text-amber-400" />
+        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2.5 tracking-tight">
+          <i className="fa-solid fa-user-shield text-amber-500" />
           <span>Kelola Akun Administrator & Hak Akses</span>
         </h2>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-slate-500 mt-1 font-medium">
           Atur peran akun (Super Admin vs Admin) dan pantau siapa saja yang memiliki akses ke dashboard
         </p>
       </div>

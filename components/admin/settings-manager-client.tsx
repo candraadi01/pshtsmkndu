@@ -83,8 +83,8 @@ function UniversalImageSlot({
     <div
       className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between ${
         isRemoved
-          ? "border-red-900/40 bg-red-950/10"
-          : "border-gray-800 bg-[#0c121e] hover:border-gray-700"
+          ? "border-rose-200 bg-rose-50/50"
+          : "border-slate-200 bg-slate-50/80 hover:border-slate-300"
       }`}
     >
       <input type="hidden" name={`existing_${namePrefix}`} value={initialUrl || ""} />
@@ -92,15 +92,15 @@ function UniversalImageSlot({
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold text-gray-200 flex items-center gap-1.5">
-            <i className="fa-solid fa-image text-amber-400 text-xs" />
+          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <i className="fa-solid fa-image text-amber-500 text-xs" />
             <span>{title}</span>
           </span>
           <span
-            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
               isPrimary
-                ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                : "bg-gray-800 text-gray-400"
+                ? "bg-amber-100 text-amber-800 border border-amber-200"
+                : "bg-slate-100 text-slate-600"
             }`}
           >
             {isPrimary ? "Slide 1 (Utama)" : `Slide ${slotNumber}`}
@@ -108,91 +108,65 @@ function UniversalImageSlot({
         </div>
 
         {/* Thumbnail Preview */}
-        <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/50 border border-gray-800 flex items-center justify-center mb-3 group">
-          {preview && !isRemoved ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={resolveMediaUrl(preview)}
-                alt={title}
-                className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = "/sh-emblem.png";
-                }}
-              />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={disabled}
-                  className="px-3 py-1.5 bg-black/85 hover:bg-black text-white text-xs font-semibold rounded-lg border border-white/20 backdrop-blur-sm shadow"
-                >
-                  <i className="fa-solid fa-camera mr-1.5" /> Ganti
-                </button>
-              </div>
-            </>
+        <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mb-2 flex items-center justify-center shadow-2xs">
+          {isRemoved ? (
+            <div className="text-center p-2 text-rose-500 text-xs font-medium">
+              <i className="fa-solid fa-trash-can text-lg block mb-1" />
+              <span>Foto Dihapus</span>
+            </div>
+          ) : preview ? (
+            <Image
+              src={resolveMediaUrl(preview)}
+              alt={title}
+              fill
+              className="object-cover"
+            />
           ) : (
-            <div className="text-center p-3 text-gray-500 flex flex-col items-center justify-center">
-              <i
-                className={`fa-solid ${
-                  isRemoved ? "fa-trash-can text-red-400" : "fa-cloud-arrow-up text-gray-600"
-                } text-xl mb-1`}
-              />
-              <p className="text-[11px] font-medium">
-                {isRemoved ? "Ditandai Dihapus" : "Belum ada foto"}
-              </p>
+            <div className="text-center p-2 text-slate-400 text-xs font-medium">
+              <i className="fa-solid fa-cloud-arrow-up text-lg block mb-1 opacity-50" />
+              <span>Belum ada foto</span>
             </div>
           )}
         </div>
       </div>
 
-      <div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          name={`${namePrefix}_file`}
-          accept="image/*"
-          disabled={disabled}
-          onChange={handleFileChange}
-          className="hidden"
-        />
+      <div className="space-y-2 mt-1">
+        {!disabled && (
+          <div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              name={`${namePrefix}_file`}
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:bg-slate-200 file:text-slate-800 file:font-bold hover:file:bg-slate-300 transition-all"
+            />
+          </div>
+        )}
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled}
-            className="flex-1 py-1.5 px-3 bg-gray-800/90 hover:bg-gray-800 text-gray-200 text-xs font-semibold rounded-lg border border-gray-700 transition flex items-center justify-center gap-1.5 disabled:opacity-50"
-          >
-            <i className="fa-solid fa-upload text-[11px]" />
-            <span>{preview && !isRemoved ? "Ubah" : "Pilih Foto"}</span>
-          </button>
-
-          {preview && !isRemoved && (
-            <button
-              type="button"
-              onClick={handleRemove}
-              disabled={disabled}
-              title="Hapus foto ini"
-              className="p-1.5 px-2.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 text-xs rounded-lg border border-red-800/50 transition disabled:opacity-50"
-            >
-              <i className="fa-solid fa-trash-can text-xs" />
-            </button>
-          )}
-
-          {isRemoved && (
-            <button
-              type="button"
-              onClick={handleRestore}
-              disabled={disabled}
-              title="Batalkan penghapusan"
-              className="p-1.5 px-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg border border-gray-600 transition"
-            >
-              <i className="fa-solid fa-rotate-left text-xs mr-1" />
-              <span>Batal</span>
-            </button>
-          )}
-        </div>
+        {!disabled && (preview || isRemoved) && (
+          <div className="flex justify-end pt-1">
+            {isRemoved ? (
+              <button
+                type="button"
+                onClick={handleRestore}
+                className="text-[11px] font-bold text-amber-700 hover:underline flex items-center gap-1"
+              >
+                <i className="fa-solid fa-rotate-left" />
+                <span>Batal Hapus</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="text-[11px] font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1"
+              >
+                <i className="fa-solid fa-trash" />
+                <span>Hapus Foto Ini</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -244,23 +218,23 @@ export default function SettingsManagerClient({
   };
 
   return (
-    <div className="bg-[#151d2a] rounded-3xl border border-gray-800 p-6 sm:p-8 shadow-xl">
+    <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-sm border-t-4 border-t-blue-500">
       {msg.text && (
         <div
-          className={`p-4 rounded-xl text-xs sm:text-sm mb-6 flex items-center gap-2.5 ${
+          className={`p-4 rounded-2xl text-xs sm:text-sm mb-6 flex items-center gap-2.5 font-bold ${
             msg.isError
-              ? "bg-red-900/40 border border-red-500/50 text-red-200"
-              : "bg-emerald-900/40 border border-emerald-500/50 text-emerald-200"
+              ? "bg-rose-50 border border-rose-200 text-rose-700"
+              : "bg-emerald-50 border border-emerald-200 text-emerald-700"
           }`}
         >
-          <i className={`fa-solid ${msg.isError ? "fa-circle-exclamation" : "fa-circle-check"}`} />
+          <i className={`fa-solid ${msg.isError ? "fa-circle-exclamation text-rose-600" : "fa-circle-check text-emerald-600"}`} />
           <span>{msg.text}</span>
         </div>
       )}
 
       {!isSuperAdmin && (
-        <div className="p-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs rounded-xl mb-6">
-          <i className="fa-solid fa-info-circle mr-1.5" />
+        <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-2xl mb-6 font-semibold">
+          <i className="fa-solid fa-circle-info mr-1.5 text-amber-600" />
           Hanya <strong>Super Admin</strong> yang memiliki otoritas mengubah konfigurasi inti website.
         </div>
       )}
@@ -269,12 +243,12 @@ export default function SettingsManagerClient({
         <input type="hidden" name="existing_logo" value={settings?.logo || ""} />
 
         {/* 1. Logo Section */}
-        <div className="border-b border-gray-800 pb-6">
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
+        <div className="border-b border-slate-100 pb-6">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
             Logo Utama Website
           </label>
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-black/60 border border-gray-700 p-2 flex items-center justify-center shrink-0">
+            <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 p-2 flex items-center justify-center shrink-0 shadow-2xs">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={resolveMediaUrl(logoPreview || "/sh-emblem.png")}
@@ -292,9 +266,9 @@ export default function SettingsManagerClient({
                 accept="image/*"
                 disabled={!isSuperAdmin}
                 onChange={handleLogoChange}
-                className="w-full px-3 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-gray-300 text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:bg-amber-500 file:text-gray-950 disabled:opacity-50"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-amber-500 file:text-slate-950 file:font-bold hover:file:bg-amber-600 disabled:opacity-50 transition-all"
               />
-              <p className="mt-1 text-[11px] text-gray-500">
+              <p className="mt-1.5 text-[11px] text-slate-500">
                 Pilih file logo baru (PNG transparan disarankan) untuk mengganti logo di header dan footer.
               </p>
             </div>
@@ -302,20 +276,20 @@ export default function SettingsManagerClient({
         </div>
 
         {/* 2. Banner Hero Section */}
-        <div className="space-y-5 border-b border-gray-800 pb-6">
+        <div className="space-y-5 border-b border-slate-100 pb-6">
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider text-amber-400 flex items-center gap-2">
-              <i className="fa-solid fa-panorama text-amber-400" />
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <i className="fa-solid fa-panorama text-amber-500" />
               <span>Banner Hero Utama & Slide Foto Beranda</span>
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Atur teks sambutan utama dan 4 foto latar belakang slide banner atas beranda.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                 Judul Sambutan Hero
               </label>
               <input
@@ -323,11 +297,11 @@ export default function SettingsManagerClient({
                 name="judul_hero"
                 defaultValue={settings?.judul_hero || "Persaudaraan Setia Hati Terate"}
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                 Deskripsi Singkat / Slogan Hero
               </label>
               <input
@@ -338,17 +312,17 @@ export default function SettingsManagerClient({
                   "Sub Rayon SMKN Darul Ulum Muncar, Cabang Banyuwangi - Pusat Informasi & Prestasi Pencak Silat."
                 }
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-300">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                 Foto-Foto Slide Banner Hero (Maksimal 4 Foto)
               </label>
-              <span className="text-[11px] text-gray-400">
+              <span className="text-[11px] text-slate-500">
                 Slider otomatis & panah navigasi di beranda
               </span>
             </div>
@@ -387,19 +361,19 @@ export default function SettingsManagerClient({
         </div>
 
         {/* 3. Profil Sejarah Organisasi Section */}
-        <div className="space-y-5 border-b border-gray-800 pb-6">
+        <div className="space-y-5 border-b border-slate-100 pb-6">
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider text-amber-400 flex items-center gap-2">
-              <i className="fa-solid fa-landmark text-amber-400" />
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <i className="fa-solid fa-landmark text-amber-500" />
               <span>Profil Sejarah Organisasi (Beranda)</span>
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Kelola judul, naskah deskripsi sejarah, serta foto-foto slide galeri sejarah yang tampil di tab Beranda website.
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
               Judul Bagian Sejarah
             </label>
             <input
@@ -408,12 +382,12 @@ export default function SettingsManagerClient({
               defaultValue={settings?.judul_sejarah || "Sejarah Organisasi"}
               disabled={!isSuperAdmin}
               placeholder="Contoh: Sejarah Organisasi"
-              className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
               Deskripsi / Naskah Sejarah
             </label>
             <textarea
@@ -425,16 +399,16 @@ export default function SettingsManagerClient({
               }
               disabled={!isSuperAdmin}
               placeholder="Tuliskan ringkasan naskah sejarah di sini..."
-              className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50 leading-relaxed"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 leading-relaxed transition-all font-medium"
             />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-300">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
                 Foto-Foto Slide Sejarah (Maksimal 4 Foto)
               </label>
-              <span className="text-[11px] text-gray-400">
+              <span className="text-[11px] text-slate-500">
                 Carousel slide foto di samping naskah sejarah
               </span>
             </div>
@@ -473,45 +447,45 @@ export default function SettingsManagerClient({
         </div>
 
         {/* 4. Visi & Misi Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-gray-800 pb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-slate-100 pb-6">
           <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">Visi Organisasi</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Visi Organisasi</label>
             <textarea
               name="visi"
               rows={4}
               defaultValue={settings?.visi || "Membentuk manusia berbudi pekerti luhur tahu benar dan salah."}
               disabled={!isSuperAdmin}
-              className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">Misi Organisasi</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">Misi Organisasi</label>
             <textarea
               name="misi"
               rows={4}
               defaultValue={settings?.misi || "Melestarikan budaya bangsa melalui seni beladiri pencak silat persaudaraan."}
               disabled={!isSuperAdmin}
-              className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
             />
           </div>
         </div>
 
         {/* 5. Kontak & Media Sosial Section */}
-        <div className="space-y-5 border-b border-gray-800 pb-6">
+        <div className="space-y-5 border-b border-slate-100 pb-6">
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider text-amber-400 flex items-center gap-2">
-              <i className="fa-solid fa-share-nodes text-amber-400" />
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <i className="fa-solid fa-share-nodes text-blue-600" />
               <span>Media Sosial & Kontak Resmi Website</span>
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Mengatur tombol melayang (floating icon WhatsApp, Instagram, TikTok) di sebelah kanan beranda, footer, dan halaman kontak.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1 flex items-center gap-1.5">
-                <i className="fa-brands fa-whatsapp text-emerald-400" />
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1 flex items-center gap-1.5">
+                <i className="fa-brands fa-whatsapp text-emerald-600" />
                 <span>Nomor / Link WhatsApp</span>
               </label>
               <input
@@ -520,14 +494,14 @@ export default function SettingsManagerClient({
                 defaultValue={extSettings?.whatsapp || "6282338184217"}
                 placeholder="Contoh: 6282338184217 atau https://wa.me/..."
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
-              <p className="text-[10px] text-gray-500 mt-1">Bisa nomor awalan 62 atau link wa.me</p>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">Bisa nomor awalan 62 atau link wa.me</p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1 flex items-center gap-1.5">
-                <i className="fa-brands fa-instagram text-pink-400" />
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1 flex items-center gap-1.5">
+                <i className="fa-brands fa-instagram text-pink-600" />
                 <span>Link / Username Instagram</span>
               </label>
               <input
@@ -536,14 +510,14 @@ export default function SettingsManagerClient({
                 defaultValue={extSettings?.instagram || "https://instagram.com/psht.smkndu"}
                 placeholder="https://instagram.com/psht.smkndu"
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
-              <p className="text-[10px] text-gray-500 mt-1">Link URL atau username Instagram</p>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">Link URL atau username Instagram</p>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1 flex items-center gap-1.5">
-                <i className="fa-brands fa-tiktok text-gray-200" />
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1 flex items-center gap-1.5">
+                <i className="fa-brands fa-tiktok text-slate-800" />
                 <span>Link / Username TikTok</span>
               </label>
               <input
@@ -552,16 +526,16 @@ export default function SettingsManagerClient({
                 defaultValue={extSettings?.tiktok || "https://www.tiktok.com/@candratokez1"}
                 placeholder="https://www.tiktok.com/@..."
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
-              <p className="text-[10px] text-gray-500 mt-1">Link URL atau username TikTok</p>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">Link URL atau username TikTok</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1 flex items-center gap-1.5">
-                <i className="fa-solid fa-envelope text-amber-400" />
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1 flex items-center gap-1.5">
+                <i className="fa-solid fa-envelope text-amber-600" />
                 <span>Email Resmi Organisasi</span>
               </label>
               <input
@@ -570,12 +544,12 @@ export default function SettingsManagerClient({
                 defaultValue={extSettings?.email || "psht.smkndu@gmail.com"}
                 placeholder="psht.smkndu@gmail.com"
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1 flex items-center gap-1.5">
-                <i className="fa-solid fa-phone text-amber-400" />
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1 flex items-center gap-1.5">
+                <i className="fa-solid fa-phone text-blue-600" />
                 <span>Nomor Telepon / Kontak Kantor</span>
               </label>
               <input
@@ -584,26 +558,26 @@ export default function SettingsManagerClient({
                 defaultValue={extSettings?.telepon || "+62 823-3818-4217"}
                 placeholder="+62 823-3818-4217"
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
             </div>
           </div>
         </div>
 
         {/* 6. Alamat & Peta Google Maps */}
-        <div className="space-y-5 border-b border-gray-800 pb-6">
+        <div className="space-y-5 border-b border-slate-100 pb-6">
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider text-amber-400 flex items-center gap-2">
-              <i className="fa-solid fa-map-location-dot text-amber-400" />
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <i className="fa-solid fa-map-location-dot text-rose-500" />
               <span>Alamat Lengkap & Peta Google Maps</span>
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Atur teks alamat fisik, link embed peta (iframe), dan link petunjuk arah yang tampil di footer serta halaman Kontak.
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
               Alamat Fisik / Sekretariat
             </label>
             <textarea
@@ -615,13 +589,13 @@ export default function SettingsManagerClient({
               }
               disabled={!isSuperAdmin}
               placeholder="Tuliskan alamat lengkap..."
-              className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                 URL Embed Google Maps (src iframe)
               </label>
               <input
@@ -631,14 +605,14 @@ export default function SettingsManagerClient({
                 onChange={(e) => setMapsEmbedUrl(e.target.value)}
                 placeholder="https://www.google.com/maps/embed?pb=..."
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-xs font-mono focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all"
               />
-              <p className="text-[10px] text-gray-500 mt-1">
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">
                 Didapat dari Google Maps: <em>Bagikan &rarr; Sematkan peta (salin atribut src)</em>
               </p>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                 Link Langsung Petunjuk Arah (Navigasi)
               </label>
               <input
@@ -647,22 +621,22 @@ export default function SettingsManagerClient({
                 defaultValue={extSettings?.maps_link || "https://maps.google.com/?q=SMKN+Darul+Ulum+Muncar"}
                 placeholder="https://maps.google.com/?q=..."
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-xs font-mono focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all"
               />
-              <p className="text-[10px] text-gray-500 mt-1">
-                Link yang dibuka saat pengguna menekan tombol "Petunjuk Arah Maps".
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                Link yang dibuka saat pengguna menekan tombol &quot;Petunjuk Arah Maps&quot;.
               </p>
             </div>
           </div>
 
           {/* Live Preview Google Maps */}
           {mapsEmbedUrl && (
-            <div className="p-3 bg-[#0c121e] rounded-2xl border border-gray-800">
-              <span className="text-xs font-bold text-gray-300 mb-2 flex items-center gap-1.5">
-                <i className="fa-solid fa-eye text-amber-400 text-xs" />
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+              <span className="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+                <i className="fa-solid fa-eye text-amber-500 text-xs" />
                 <span>Pratinjau Peta Google Maps</span>
               </span>
-              <div className="w-full h-48 sm:h-64 rounded-xl overflow-hidden bg-black border border-gray-700/60">
+              <div className="w-full h-48 sm:h-64 rounded-xl overflow-hidden bg-slate-200 border border-slate-300">
                 <iframe
                   src={mapsEmbedUrl}
                   title="Preview Peta Lokasi"
@@ -676,26 +650,26 @@ export default function SettingsManagerClient({
         </div>
 
         {/* 7. Video Profile Section ("Mengenal Lebih Jauh") */}
-        <div className="space-y-5 border-b border-gray-800 pb-6">
+        <div className="space-y-5 border-b border-slate-100 pb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider text-amber-400 flex items-center gap-2">
-                <i className="fa-solid fa-film text-amber-400" />
-                <span>Video Profil Beranda ("Mengenal Lebih Jauh")</span>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <i className="fa-solid fa-film text-rose-500" />
+                <span>Video Profil Beranda (&quot;Mengenal Lebih Jauh&quot;)</span>
               </h3>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Atur judul, deskripsi, dan link YouTube video profil yang tampil di bagian Beranda website.
               </p>
             </div>
-            <span className="text-[10px] px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <i className="fa-brands fa-youtube text-sm" />
+            <span className="text-[10px] px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <i className="fa-brands fa-youtube text-sm text-rose-600" />
               <span>YouTube Player</span>
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                 Judul Video Profil
               </label>
               <input
@@ -703,11 +677,11 @@ export default function SettingsManagerClient({
                 name="judul_video"
                 defaultValue={settings?.judul_video || "Video Profil PSHT SMKNDU"}
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                 Deskripsi Singkat Video
               </label>
               <input
@@ -718,14 +692,14 @@ export default function SettingsManagerClient({
                   "Saksikan perjalanan inspiratif kami dalam membangun organisasi yang menjunjung tinggi persatuan."
                 }
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
             </div>
           </div>
 
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                 Link Video Utama (Video 1) *
               </label>
               <input
@@ -735,16 +709,16 @@ export default function SettingsManagerClient({
                 onChange={(e) => setVideoUrl(e.target.value)}
                 placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/..."
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50 font-mono text-xs"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
-              <p className="text-[11px] text-gray-400 mt-1">
-                Mendukung link biasa YouTube (<code className="text-amber-400">youtube.com/watch?v=...</code>), link share (<code className="text-amber-400">youtu.be/...</code>), Shorts, maupun embed.
+              <p className="text-[11px] text-slate-500 mt-1">
+                Mendukung link biasa YouTube (<code className="text-amber-600 font-bold">youtube.com/watch?v=...</code>), link share (<code className="text-amber-600 font-bold">youtu.be/...</code>), Shorts, maupun embed.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                   Link Video Playlist 2 (Opsional)
                 </label>
                 <input
@@ -753,11 +727,11 @@ export default function SettingsManagerClient({
                   defaultValue={settings?.url_video1 || ""}
                   placeholder="https://www.youtube.com/watch?v=..."
                   disabled={!isSuperAdmin}
-                  className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50 font-mono text-xs"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                   Link Video Playlist 3 (Opsional)
                 </label>
                 <input
@@ -766,18 +740,18 @@ export default function SettingsManagerClient({
                   defaultValue={settings?.url_video2 || ""}
                   placeholder="https://www.youtube.com/watch?v=..."
                   disabled={!isSuperAdmin}
-                  className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50 font-mono text-xs"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
                 />
               </div>
             </div>
 
             {/* Live Video Preview Box */}
-            <div className="mt-4 p-4 rounded-2xl bg-[#0b0f17] border border-gray-800 space-y-2">
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                <i className="fa-solid fa-eye text-amber-400" />
+            <div className="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-2">
+                <i className="fa-solid fa-eye text-amber-500" />
                 <span>Pratinjau Pemutar Video Langsung (Live Preview)</span>
               </span>
-              <div className="relative aspect-video max-w-lg mx-auto overflow-hidden rounded-xl border border-gray-700/60 bg-black shadow-lg flex items-center justify-center">
+              <div className="relative aspect-video max-w-lg mx-auto overflow-hidden rounded-xl border border-slate-200 bg-black shadow-sm flex items-center justify-center">
                 {formatVideoEmbedUrl(videoUrl) ? (
                   <iframe
                     src={formatVideoEmbedUrl(videoUrl)}
@@ -787,8 +761,8 @@ export default function SettingsManagerClient({
                     allowFullScreen
                   />
                 ) : (
-                  <div className="text-center p-6 text-gray-500 space-y-2">
-                    <i className="fa-brands fa-youtube text-4xl text-gray-600" />
+                  <div className="text-center p-6 text-slate-400 space-y-2">
+                    <i className="fa-brands fa-youtube text-4xl text-slate-300" />
                     <p className="text-xs">Masukkan link YouTube di atas untuk melihat pratinjau pemutar video.</p>
                   </div>
                 )}
@@ -798,20 +772,20 @@ export default function SettingsManagerClient({
         </div>
 
         {/* 8. Footer & Statistik Section */}
-        <div className="space-y-5 border-b border-gray-800 pb-6">
+        <div className="space-y-5 border-b border-slate-100 pb-6">
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider text-amber-400 flex items-center gap-2">
-              <i className="fa-solid fa-chart-simple text-amber-400" />
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <i className="fa-solid fa-chart-simple text-amber-500" />
               <span>Pengaturan Footer & Statistik Beranda</span>
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Atur teks slogan dan hak cipta footer, serta opsi penyesuaian angka statistik di beranda.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                 Slogan Footer
               </label>
               <input
@@ -819,11 +793,11 @@ export default function SettingsManagerClient({
                 name="footer_slogan"
                 defaultValue={extSettings?.footer_slogan || "Suro Diro Jayaningrat Lebur Dening Pangastuti"}
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                 Teks Copyright Footer
               </label>
               <input
@@ -831,61 +805,61 @@ export default function SettingsManagerClient({
                 name="footer_copyright"
                 defaultValue={extSettings?.footer_copyright || "© 2025 MasCan"}
                 disabled={!isSuperAdmin}
-                className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
               Penyesuaian Manual Angka Statistik Beranda (Opsional)
             </label>
-            <p className="text-[11px] text-gray-400 mb-3">
+            <p className="text-[11px] text-slate-400 mb-3">
               Biarkan kosong jika ingin angka dihitung otomatis dari database (jumlah siswa, pelatih, warga, galeri).
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
-                <label className="block text-[11px] text-gray-400 mb-1">Siswa Aktif</label>
+                <label className="block text-[11px] text-slate-600 font-bold mb-1">Siswa Aktif</label>
                 <input
                   type="number"
                   name="stat_siswa_override"
                   defaultValue={extSettings?.stat_siswa_override ?? ""}
                   placeholder="Otomatis"
                   disabled={!isSuperAdmin}
-                  className="w-full px-3 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 font-medium"
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-gray-400 mb-1">Pelatih</label>
+                <label className="block text-[11px] text-slate-600 font-bold mb-1">Pelatih</label>
                 <input
                   type="number"
                   name="stat_pelatih_override"
                   defaultValue={extSettings?.stat_pelatih_override ?? ""}
                   placeholder="Otomatis"
                   disabled={!isSuperAdmin}
-                  className="w-full px-3 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 font-medium"
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-gray-400 mb-1">Warga</label>
+                <label className="block text-[11px] text-slate-600 font-bold mb-1">Warga</label>
                 <input
                   type="number"
                   name="stat_warga_override"
                   defaultValue={extSettings?.stat_warga_override ?? ""}
                   placeholder="Otomatis"
                   disabled={!isSuperAdmin}
-                  className="w-full px-3 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 font-medium"
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-gray-400 mb-1">Galeri Foto</label>
+                <label className="block text-[11px] text-slate-600 font-bold mb-1">Galeri Foto</label>
                 <input
                   type="number"
                   name="stat_galeri_override"
                   defaultValue={extSettings?.stat_galeri_override ?? ""}
                   placeholder="Otomatis"
                   disabled={!isSuperAdmin}
-                  className="w-full px-3 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500 disabled:opacity-50"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 font-medium"
                 />
               </div>
             </div>
@@ -894,7 +868,7 @@ export default function SettingsManagerClient({
 
         {/* 9. Syarat Pendaftaran */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
             Syarat & Ketentuan Pendaftaran Anggota Baru
           </label>
           <textarea
@@ -905,16 +879,16 @@ export default function SettingsManagerClient({
               "1. Berstatus siswa/siswi aktif SMKN Darul Ulum Muncar.\n2. Mengisi formulir pendaftaran resmi.\n3. Memperoleh izin tertulis dari orang tua/wali.\n4. Siap menaati AD/ART dan tata tertib latihan PSHT."
             }
             disabled={!isSuperAdmin}
-            className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-50 transition-all font-medium leading-relaxed"
           />
         </div>
 
         {isSuperAdmin && (
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end pt-4 border-t border-slate-100">
             <button
               type="submit"
               disabled={isPending}
-              className="px-8 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold text-sm shadow-xl shadow-amber-500/25 disabled:opacity-50 flex items-center gap-2.5 transition transform active:scale-95"
+              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/25 disabled:opacity-50 flex items-center gap-2.5 transition transform active:scale-95"
             >
               {isPending && <i className="fa-solid fa-circle-notch fa-spin" />}
               <i className="fa-solid fa-floppy-disk" />

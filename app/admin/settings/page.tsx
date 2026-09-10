@@ -36,11 +36,11 @@ export default async function AdminSettingsPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-          <i className="fa-solid fa-sliders text-amber-400" />
+        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2.5 tracking-tight">
+          <i className="fa-solid fa-sliders text-amber-500" />
           <span>Pengaturan Website & Identitas</span>
         </h2>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-slate-500 mt-1 font-medium">
           Ubah logo resmi, slider hero, profil & foto sejarah, visi & misi, media sosial, Google Maps, serta kontak website
         </p>
       </div>

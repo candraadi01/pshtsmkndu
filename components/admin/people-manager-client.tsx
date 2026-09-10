@@ -8,55 +8,55 @@ import { resolveMediaUrl } from "@/lib/media";
 interface PersonItem {
   id: number;
   nama: string;
-  tipe: "pelatih" | "warga" | "siswa" | string;
+  tipe: "pelatih" | "warga" | "siswa";
+  jabatan?: string | null;
+  tingkat?: string | null;
   sabuk?: string | null;
-  jenis_kelamin?: string | null;
-  alamat?: string | null;
-  no_hp?: string | null;
   foto?: string | null;
+  no_hp?: string | null;
+  alamat?: string | null;
+  jenis_kelamin?: string | null;
+  urutan?: number | null;
 }
 
 export default function PeopleManagerClient({
   initialPeople,
-  userRole = "admin",
+  role,
+  userRole,
 }: {
   initialPeople: PersonItem[];
+  role?: string;
   userRole?: string;
 }) {
-  const isSuperAdmin = userRole === "super_admin";
+  const isSuperAdmin = (userRole || role || "super_admin") === "super_admin";
   const [people, setPeople] = useState<PersonItem[]>(initialPeople);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<string>(isSuperAdmin ? "all" : "siswa");
-  const [formTipe, setFormTipe] = useState<string>("siswa");
   const [editingPerson, setEditingPerson] = useState<PersonItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState("");
 
   const filtered = people.filter((p) => {
-    // Admin biasa hanya bisa melihat dan mencari siswa
-    if (!isSuperAdmin && p.tipe !== "siswa") return false;
     const matchSearch = p.nama.toLowerCase().includes(search.toLowerCase());
-    const matchTab = isSuperAdmin ? (activeTab === "all" || p.tipe === activeTab) : p.tipe === "siswa";
+    const matchTab = activeTab === "all" || p.tipe === activeTab;
     return matchSearch && matchTab;
   });
 
   const handleOpenCreate = () => {
     setEditingPerson(null);
-    setFormTipe(isSuperAdmin && activeTab !== "all" ? activeTab : "siswa");
     setErrorMsg("");
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (person: PersonItem) => {
     setEditingPerson(person);
-    setFormTipe(person.tipe);
     setErrorMsg("");
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: number, nama: string) => {
-    if (!confirm(`Hapus data anggota "${nama}"?`)) return;
+  const handleDelete = (id: number, name: string) => {
+    if (!confirm(`Hapus data ${name}? Tindakan ini tidak dapat dibatalkan.`)) return;
 
     startTransition(async () => {
       const res = await deletePersonAction(id);
@@ -119,35 +119,35 @@ export default function PeopleManagerClient({
   const getBadgeColor = (tipe: string) => {
     switch (tipe) {
       case "pelatih":
-        return "bg-amber-500/10 text-amber-400 border border-amber-500/30";
+        return "bg-emerald-50 text-emerald-700 border border-emerald-200";
       case "warga":
-        return "bg-purple-500/10 text-purple-400 border border-purple-500/30";
+        return "bg-amber-50 text-amber-800 border border-amber-200";
       case "siswa":
-        return "bg-blue-500/10 text-blue-400 border border-blue-500/30";
+        return "bg-blue-50 text-blue-700 border border-blue-200";
       default:
-        return "bg-gray-800 text-gray-300";
+        return "bg-slate-100 text-slate-700 border border-slate-200";
     }
   };
 
   const getSabukBadge = (sabuk?: string | null) => {
     switch (sabuk?.toLowerCase().trim()) {
       case "polos":
-        return "bg-gray-800 text-gray-200 border border-gray-600";
+        return "bg-slate-100 text-slate-700 border border-slate-300";
       case "jambon":
-        return "bg-pink-500/20 text-pink-300 border border-pink-500/40";
+        return "bg-pink-50 text-pink-700 border border-pink-300";
       case "hijau":
-        return "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+        return "bg-emerald-50 text-emerald-700 border border-emerald-300";
       case "putih":
-        return "bg-sky-500/20 text-sky-200 border border-sky-400/50";
+        return "bg-sky-50 text-sky-700 border border-sky-300";
       default:
-        return "bg-gray-800 text-gray-400 border border-gray-700";
+        return "bg-slate-50 text-slate-500 border border-slate-200";
     }
   };
 
   return (
-    <div className="space-y-4">
-      {/* Tabs & Search */}
-      <div className="flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center bg-[#151d2a] p-4 rounded-2xl border border-gray-800">
+    <div className="space-y-5">
+      {/* Tabs & Search Action Bar */}
+      <div className="flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-sm">
         <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
           {isSuperAdmin ? (
             [
@@ -159,118 +159,147 @@ export default function PeopleManagerClient({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                   activeTab === tab.id
-                    ? "bg-amber-500 text-gray-950 font-bold shadow-sm"
-                    : "bg-gray-800/80 text-gray-300 hover:text-white"
+                    ? "bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white shadow-sm shadow-indigo-500/20"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
                 }`}
               >
                 {tab.label}
               </button>
             ))
           ) : (
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs font-extrabold">
               <i className="fa-solid fa-user-graduate" />
               <span>Daftar Siswa PSHT ({filtered.length})</span>
             </div>
           )}
         </div>
 
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2.5 items-center">
           <div className="relative flex-1 md:w-64">
-            <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs" />
+            <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={isSuperAdmin ? "Cari nama anggota..." : "Cari nama siswa..."}
-              className="w-full pl-9 pr-4 py-2 bg-[#0b0f17] border border-gray-700/80 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500"
+              placeholder="Cari nama anggota..."
+              className="w-full pl-9 pr-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
             />
           </div>
 
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all shrink-0"
-            title="Ekspor data siswa / anggota ke Excel / CSV"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold border border-emerald-200 transition-colors shrink-0"
+            title="Ekspor CSV"
           >
-            <i className="fa-solid fa-file-excel text-sm text-emerald-100" />
-            <span className="hidden sm:inline">Export Excel</span>
-            <span className="sm:hidden">Export</span>
+            <i className="fa-solid fa-file-excel text-xs" />
+            <span className="hidden sm:inline">Ekspor CSV</span>
           </button>
 
           <button
             onClick={handleOpenCreate}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold text-xs sm:text-sm shadow-md transition-all shrink-0"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xs sm:text-sm shadow-sm shadow-amber-500/25 hover:shadow transition-all shrink-0"
           >
             <i className="fa-solid fa-user-plus text-xs" />
-            <span>{isSuperAdmin ? "Tambah Anggota" : "Tambah Siswa"}</span>
+            <span>Tambah</span>
           </button>
         </div>
       </div>
 
       {/* Table Card */}
-      <div className="bg-[#151d2a] rounded-3xl border border-gray-800 overflow-hidden shadow-lg">
+      <div className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm border-t-4 border-t-indigo-500">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
             <thead>
-              <tr className="border-b border-gray-800 bg-[#0f172a] text-gray-400 text-[11px] uppercase tracking-wider">
-                <th className="p-4 font-semibold">Nama & Foto</th>
-                <th className="p-4 font-semibold">Kategori</th>
-                <th className="p-4 font-semibold">Gender</th>
-                <th className="p-4 font-semibold">No. HP</th>
-                <th className="p-4 font-semibold">Alamat</th>
-                <th className="p-4 font-semibold text-right">Aksi</th>
+              <tr className="border-b border-slate-200 bg-slate-50/90 text-slate-600 text-[11px] uppercase tracking-wider font-extrabold">
+                <th className="py-3.5 px-5 font-bold">Anggota</th>
+                <th className="py-3.5 px-4 font-bold">Kategori</th>
+                <th className="py-3.5 px-4 font-bold">Jabatan / Tingkat</th>
+                <th className="py-3.5 px-4 font-bold">Kontak & Alamat</th>
+                <th className="py-3.5 px-5 font-bold text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/60">
+            <tbody className="divide-y divide-slate-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-500">
-                    Tidak ada anggota ditemukan.
+                  <td colSpan={5} className="py-12 text-center text-slate-400 font-medium">
+                    <i className="fa-regular fa-users text-3xl mb-2 block opacity-40" />
+                    Tidak ada data anggota ditemukan.
                   </td>
                 </tr>
               ) : (
                 filtered.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-800/30 transition-colors">
-                    <td className="p-4">
+                  <tr key={item.id} className="hover:bg-indigo-50/30 transition-colors">
+                    <td className="py-4 px-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-800 shrink-0 overflow-hidden relative border border-gray-700">
-                          <Image
-                            src={resolveMediaUrl(item.foto)}
-                            alt={item.nama}
-                            fill
-                            className="object-cover"
-                          />
+                        <div className="w-11 h-11 rounded-2xl bg-slate-100 shrink-0 overflow-hidden relative border border-slate-200 flex items-center justify-center text-slate-400 shadow-2xs">
+                          {item.foto ? (
+                            <Image
+                              src={resolveMediaUrl(item.foto)}
+                              alt={item.nama}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <span className="font-black text-xs text-indigo-600">
+                              {item.nama.charAt(0).toUpperCase()}
+                            </span>
+                          )}
                         </div>
-                        <span className="font-bold text-gray-200">{item.nama}</span>
+                        <div>
+                          <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <span>{item.nama}</span>
+                            {item.jenis_kelamin && (
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                ({item.jenis_kelamin === "L" ? "L" : "P"})
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-mono">ID: #{item.id}</div>
+                        </div>
                       </div>
                     </td>
-                    <td className="p-4">
-                      <div className="flex flex-col gap-1 items-start">
-                        <span className={`px-2.5 py-0.5 rounded-md text-xs font-semibold capitalize ${getBadgeColor(item.tipe)}`}>
-                          {item.tipe}
-                        </span>
+                    <td className="py-4 px-4">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase ${getBadgeColor(item.tipe)}`}>
+                        {item.tipe}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="space-y-1">
+                        {item.jabatan && (
+                          <div className="text-xs font-bold text-slate-800">{item.jabatan}</div>
+                        )}
+                        {item.tingkat && (
+                          <div className="text-[11px] text-slate-500 font-medium">{item.tingkat}</div>
+                        )}
                         {item.tipe === "siswa" && (
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${getSabukBadge(item.sabuk)}`}>
+                          <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-extrabold ${getSabukBadge(item.sabuk)}`}>
                             Sabuk {item.sabuk || "Polos"}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="p-4 text-gray-300">
-                      {item.jenis_kelamin === "L" ? "Laki-laki" : item.jenis_kelamin === "P" ? "Perempuan" : "-"}
+                    <td className="py-4 px-4">
+                      <div className="text-xs text-slate-700 font-medium">
+                        {item.no_hp ? (
+                          <span className="flex items-center gap-1 text-slate-600">
+                            <i className="fa-brands fa-whatsapp text-emerald-600 text-xs" />
+                            <span>{item.no_hp}</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                        <div className="text-[11px] text-slate-400 truncate max-w-xs mt-0.5">
+                          {item.alamat || "Alamat belum diisi"}
+                        </div>
+                      </div>
                     </td>
-                    <td className="p-4 text-gray-400 font-mono text-xs">
-                      {item.no_hp || "-"}
-                    </td>
-                    <td className="p-4 text-gray-400 text-xs max-w-xs truncate">
-                      {item.alamat || "-"}
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="py-4 px-5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 transition-colors"
+                          className="p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/60 transition-colors"
                           title="Edit"
                         >
                           <i className="fa-solid fa-pen-to-square text-xs" />
@@ -278,7 +307,7 @@ export default function PeopleManagerClient({
                         <button
                           onClick={() => handleDelete(item.id, item.nama)}
                           disabled={isPending}
-                          className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"
+                          className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 transition-colors"
                           title="Hapus"
                         >
                           <i className="fa-solid fa-trash-can text-xs" />
@@ -295,35 +324,30 @@ export default function PeopleManagerClient({
 
       {/* Modal Form */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-[#1e293b] w-full max-w-xl rounded-3xl p-6 sm:p-8 border border-gray-700 shadow-2xl space-y-5 my-auto max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-gray-700/80 pb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <i className={`fa-solid ${isSuperAdmin ? "fa-user-shield" : "fa-user-graduate"} text-amber-400`} />
-                <span>
-                  {editingPerson
-                    ? isSuperAdmin ? "Edit Anggota" : "Edit Data Siswa"
-                    : isSuperAdmin ? "Tambah Anggota Baru" : "Tambah Siswa Baru"}
-                </span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <i className="fa-solid fa-user-gear text-indigo-600" />
+                <span>{editingPerson ? "Edit Data Anggota" : "Tambah Anggota Baru"}</span>
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white p-1">
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1">
                 <i className="fa-solid fa-xmark text-lg" />
               </button>
             </div>
 
             {errorMsg && (
-              <div className="p-3 bg-red-900/40 border border-red-500/50 text-red-200 text-xs rounded-xl flex gap-2 items-center">
-                <i className="fa-solid fa-circle-exclamation" />
-                <span>{errorMsg}</span>
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-semibold">
+                {errorMsg}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3.5">
               {editingPerson && <input type="hidden" name="id" value={editingPerson.id} />}
               {editingPerson?.foto && <input type="hidden" name="existing_foto" value={editingPerson.foto} />}
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-300 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                   Nama Lengkap *
                 </label>
                 <input
@@ -331,134 +355,130 @@ export default function PeopleManagerClient({
                   name="nama"
                   defaultValue={editingPerson?.nama || ""}
                   required
-                  placeholder={isSuperAdmin ? "Contoh: Mas Budi Santoso..." : "Contoh: Siswa Ahmad Fauzi..."}
-                  className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500"
+                  placeholder="Contoh: Mas Budi Santoso"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {isSuperAdmin ? (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase text-gray-300 mb-1">
-                      Kategori Keanggotaan *
-                    </label>
-                    <select
-                      name="tipe"
-                      value={formTipe}
-                      onChange={(e) => setFormTipe(e.target.value)}
-                      required
-                      className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500"
-                    >
-                      <option value="pelatih">Pelatih</option>
-                      <option value="warga">Warga</option>
-                      <option value="siswa">Siswa</option>
-                    </select>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase text-gray-300 mb-1">
-                      Kategori Keanggotaan
-                    </label>
-                    <input type="hidden" name="tipe" value="siswa" />
-                    <div className="px-3.5 py-2.5 bg-[#0b0f17] border border-blue-500/40 rounded-xl text-blue-400 font-semibold text-sm flex items-center gap-2">
-                      <i className="fa-solid fa-user-graduate text-xs" />
-                      <span>Siswa (Terkunci)</span>
-                    </div>
-                  </div>
-                )}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Kategori *
+                  </label>
+                  <select
+                    name="tipe"
+                    defaultValue={editingPerson?.tipe || (isSuperAdmin ? "siswa" : "siswa")}
+                    disabled={!isSuperAdmin}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium disabled:opacity-60"
+                  >
+                    {isSuperAdmin && <option value="pelatih">Pelatih</option>}
+                    {isSuperAdmin && <option value="warga">Warga</option>}
+                    <option value="siswa">Siswa</option>
+                  </select>
+                  {!isSuperAdmin && <input type="hidden" name="tipe" value="siswa" />}
+                </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase text-gray-300 mb-1">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                     Jenis Kelamin
                   </label>
                   <select
                     name="jenis_kelamin"
                     defaultValue={editingPerson?.jenis_kelamin || "L"}
-                    className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
                   >
-                    <option value="L">Laki-laki (L)</option>
-                    <option value="P">Perempuan (P)</option>
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
                   </select>
                 </div>
               </div>
 
-              {/* Kategori Sabuk (Khusus Siswa) */}
-              {(formTipe === "siswa" || !isSuperAdmin) && (
-                <div className="p-3.5 rounded-2xl bg-[#0d1525] border border-amber-500/30 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                      <i className="fa-solid fa-award text-xs" />
-                      <span>Kategori / Tingkatan Sabuk Siswa *</span>
-                    </label>
-                    <span className="text-[10px] text-gray-400 font-medium">PSHT SMKN Darul Ulum</span>
-                  </div>
+              {/* Dynamic Field: Siswa (Sabuk) vs Pelatih/Warga (Jabatan/Tingkat) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Sabuk (Khusus Siswa)
+                  </label>
                   <select
                     name="sabuk"
                     defaultValue={editingPerson?.sabuk || "Polos"}
-                    required
-                    className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-amber-500/50 rounded-xl text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
                   >
-                    <option value="Polos">🥋 Sabuk Polos (Hitam / Siswa Pemula)</option>
-                    <option value="Jambon">🥋 Sabuk Jambon (Merah Muda)</option>
-                    <option value="Hijau">🥋 Sabuk Hijau</option>
-                    <option value="Putih">🥋 Sabuk Putih (Putih Kecil / Pra-Warga)</option>
+                    <option value="Polos">Polos (Hitam)</option>
+                    <option value="Jambon">Jambon (Merah Muda)</option>
+                    <option value="Hijau">Hijau</option>
+                    <option value="Putih">Putih Kecil</option>
                   </select>
                 </div>
-              )}
 
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-300 mb-1">
-                  Nomor WhatsApp / HP
-                </label>
-                <input
-                  type="text"
-                  name="no_hp"
-                  defaultValue={editingPerson?.no_hp || ""}
-                  placeholder="Contoh: 08123456789"
-                  className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500"
-                />
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Jabatan (Pelatih/Warga)
+                  </label>
+                  <input
+                    type="text"
+                    name="jabatan"
+                    defaultValue={editingPerson?.jabatan || ""}
+                    placeholder="Contoh: Ketua Rayon, Pelatih Utama"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    No WhatsApp / HP
+                  </label>
+                  <input
+                    type="text"
+                    name="no_hp"
+                    defaultValue={editingPerson?.no_hp || ""}
+                    placeholder="Contoh: 08123456789"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                    Foto Profil
+                  </label>
+                  <input
+                    type="file"
+                    name="foto_file"
+                    accept="image/*"
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:bg-indigo-500 file:text-white file:font-bold hover:file:bg-indigo-600 transition-all"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-gray-300 mb-1">
-                  Alamat Asal
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Alamat Lengkap
                 </label>
-                <input
-                  type="text"
+                <textarea
                   name="alamat"
+                  rows={2}
                   defaultValue={editingPerson?.alamat || ""}
-                  placeholder="Contoh: Wringinputih, Muncar"
-                  className="w-full px-3.5 py-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500"
+                  placeholder="Contoh: Dusun Krajan, Desa Kedungrejo, Muncar..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase text-gray-300 mb-1">
-                  Foto Profil (Cloudinary Upload)
-                </label>
-                <input
-                  type="file"
-                  name="foto_file"
-                  accept="image/*"
-                  className="w-full px-3.5 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-gray-300 text-xs file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-amber-500 file:text-gray-950 file:font-semibold"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-700/80">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-medium"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-950 text-xs font-bold shadow-md disabled:opacity-50 flex items-center gap-2"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white text-xs font-black shadow-sm disabled:opacity-50"
                 >
-                  {isPending && <i className="fa-solid fa-circle-notch fa-spin" />}
-                  <span>Simpan Anggota</span>
+                  {isPending ? "Menyimpan..." : "Simpan Data"}
                 </button>
               </div>
             </form>

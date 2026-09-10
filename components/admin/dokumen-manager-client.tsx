@@ -1,47 +1,56 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { saveTipeDokumenAction, deleteTipeDokumenAction, saveDokumenAction, deleteDokumenAction } from "@/lib/services/admin-crud";
+import {
+  saveTipeDokumenAction,
+  deleteTipeDokumenAction,
+  saveDokumenAction,
+  deleteDokumenAction,
+} from "@/lib/services/admin-crud";
 
-interface DokumenItem {
-  id: number;
-  nama_dokumen: string;
-  path: string;
-  tipe_dokumen_id: number;
-}
-
-interface CategoryItem {
+interface CategoryDoc {
   id: number;
   nama: string;
   deskripsi?: string | null;
-  dokumen?: DokumenItem[];
+  dokumen?: Array<{
+    id: number;
+    nama_dokumen: string;
+    path: string;
+    created_at?: string;
+  }>;
 }
 
-export default function DokumenManagerClient({ initialCategories }: { initialCategories: CategoryItem[] }) {
-  const [categories, setCategories] = useState<CategoryItem[]>(initialCategories);
+export default function DokumenManagerClient({ initialCategories }: { initialCategories: CategoryDoc[] }) {
+  const [categories, setCategories] = useState<CategoryDoc[]>(initialCategories);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const [selectedCatId, setSelectedCatId] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleCreateCategory = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateCategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMsg("");
     const formData = new FormData(e.currentTarget);
+
     startTransition(async () => {
       const res = await saveTipeDokumenAction(formData);
       if (res.success) {
         setIsCatModalOpen(false);
         window.location.reload();
       } else {
-        setErrorMsg(res.error || "Gagal menyimpan kategori");
+        setErrorMsg(res.error || "Gagal membuat kategori dokumen");
       }
     });
   };
 
-  const handleAddDocument = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleUploadFile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!selectedCatId) return;
+    setErrorMsg("");
     const formData = new FormData(e.currentTarget);
+    formData.append("tipe_dokumen_id", String(selectedCatId));
+
     startTransition(async () => {
       const res = await saveDokumenAction(formData);
       if (res.success) {
@@ -79,10 +88,15 @@ export default function DokumenManagerClient({ initialCategories }: { initialCat
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      {/* Top Action Bar */}
+      <div className="flex justify-between items-center bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/90 shadow-sm">
+        <div>
+          <h3 className="text-sm font-extrabold text-slate-900">Total {categories.length} Kategori Dokumen</h3>
+          <p className="text-xs text-slate-500 font-medium">Kelola berkas PDF resmi, pedoman organisasi, dan formulir pendaftaran</p>
+        </div>
         <button
           onClick={() => { setErrorMsg(""); setIsCatModalOpen(true); }}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold text-xs sm:text-sm shadow-md transition-all"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-xs sm:text-sm shadow-sm shadow-emerald-500/25 hover:shadow transition-all shrink-0"
         >
           <i className="fa-solid fa-plus text-xs" />
           <span>Tambah Kategori Dokumen</span>
@@ -90,32 +104,35 @@ export default function DokumenManagerClient({ initialCategories }: { initialCat
       </div>
 
       {categories.length === 0 ? (
-        <div className="p-12 text-center bg-[#151d2a] rounded-3xl border border-gray-800 text-gray-500">
+        <div className="p-12 text-center bg-white rounded-3xl border border-slate-200/90 shadow-sm text-slate-400 font-medium">
+          <i className="fa-regular fa-folder-open text-3xl mb-2 block opacity-40" />
           Belum ada kategori dokumen. Klik &quot;Tambah Kategori Dokumen&quot; untuk memulai.
         </div>
       ) : (
         <div className="space-y-6">
           {categories.map((cat) => (
-            <div key={cat.id} className="bg-[#151d2a] rounded-3xl border border-gray-800 p-6 shadow-md space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800 pb-4">
+            <div key={cat.id} className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-6 shadow-sm space-y-4 border-t-4 border-t-emerald-500">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <i className="fa-solid fa-folder-open text-amber-400" />
+                  <h3 className="text-base font-black text-slate-900 flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-xs">
+                      <i className="fa-solid fa-folder-open" />
+                    </div>
                     <span>{cat.nama}</span>
                   </h3>
                   {cat.deskripsi && (
-                    <p className="text-xs text-gray-400 mt-0.5">{cat.deskripsi}</p>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">{cat.deskripsi}</p>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => {
                       setSelectedCatId(cat.id);
                       setErrorMsg("");
                       setIsFileModalOpen(true);
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 text-xs font-semibold border border-blue-500/20"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold border border-emerald-200 transition-colors shadow-2xs"
                   >
                     <i className="fa-solid fa-file-arrow-up text-xs" />
                     <span>Unggah Berkas Baru</span>
@@ -123,7 +140,7 @@ export default function DokumenManagerClient({ initialCategories }: { initialCat
                   <button
                     onClick={() => handleDeleteCategory(cat.id, cat.nama)}
                     disabled={isPending}
-                    className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs"
+                    className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 text-xs transition-colors"
                     title="Hapus Kategori"
                   >
                     <i className="fa-solid fa-trash-can" />
@@ -133,41 +150,42 @@ export default function DokumenManagerClient({ initialCategories }: { initialCat
 
               {/* Document Files List */}
               {(!cat.dokumen || cat.dokumen.length === 0) ? (
-                <p className="text-xs text-gray-500 py-3 text-center">
-                  Belum ada berkas dalam kategori ini.
-                </p>
+                <div className="py-6 text-center text-xs text-slate-400 font-medium bg-slate-50/60 rounded-2xl border border-dashed border-slate-200">
+                  Belum ada berkas dalam kategori ini. Klik &quot;Unggah Berkas Baru&quot;.
+                </div>
               ) : (
-                <div className="divide-y divide-gray-800/60">
+                <div className="divide-y divide-slate-100">
                   {cat.dokumen.map((doc) => (
                     <div
                       key={doc.id}
-                      className="py-3 flex items-center justify-between gap-4 hover:bg-gray-800/20 rounded-xl px-3 transition-colors"
+                      className="py-3 flex items-center justify-between gap-4 hover:bg-emerald-50/30 rounded-2xl px-3 transition-colors"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="p-2 rounded-lg bg-red-500/10 text-red-400">
-                          <i className="fa-solid fa-file-pdf text-sm" />
+                        <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/80 flex items-center justify-center shrink-0">
+                          <i className="fa-solid fa-file-pdf text-base" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xs sm:text-sm font-semibold text-gray-200 truncate">
+                          <div className="text-xs sm:text-sm font-bold text-slate-900 truncate">
                             {doc.nama_dokumen}
                           </div>
-                          <div className="text-[11px] text-gray-500 font-mono truncate">{doc.path}</div>
+                          <div className="text-[11px] text-slate-400 font-mono truncate">{doc.path}</div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <a
                           href={doc.path}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs"
-                          title="Buka / Unduh"
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold transition-colors inline-flex items-center gap-1.5"
+                          title="Buka / Unduh Berkas"
                         >
-                          <i className="fa-solid fa-download text-[11px]" />
+                          <i className="fa-solid fa-download text-[11px] text-emerald-600" />
+                          <span>Unduh</span>
                         </a>
                         <button
                           onClick={() => handleDeleteFile(doc.id)}
-                          className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs"
+                          className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 text-xs transition-colors"
                           title="Hapus Berkas"
                         >
                           <i className="fa-solid fa-trash-can" />
@@ -184,44 +202,64 @@ export default function DokumenManagerClient({ initialCategories }: { initialCat
 
       {/* Category Modal */}
       {isCatModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-[#1e293b] w-full max-w-md rounded-3xl p-6 border border-gray-700 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-base font-bold text-white">Tambah Kategori Dokumen</h3>
-            {errorMsg && <p className="text-xs text-red-400">{errorMsg}</p>}
-            <form onSubmit={handleCreateCategory} className="space-y-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <i className="fa-solid fa-folder-plus text-emerald-600" />
+                <span>Tambah Kategori Dokumen</span>
+              </h3>
+              <button onClick={() => setIsCatModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1">
+                <i className="fa-solid fa-xmark text-lg" />
+              </button>
+            </div>
+
+            {errorMsg && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-semibold">
+                {errorMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateCategory} className="space-y-3.5">
               <div>
-                <label className="block text-xs text-gray-300 font-semibold mb-1">Nama Kategori *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Nama Kategori Dokumen *
+                </label>
                 <input
                   type="text"
                   name="nama"
                   required
-                  placeholder="Contoh: Surat Keputusan (SK) Pengurus..."
-                  className="w-full px-3 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm"
+                  placeholder="Contoh: SK Organisasi, Formulir Pendaftaran..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
                 />
               </div>
+
               <div>
-                <label className="block text-xs text-gray-300 font-semibold mb-1">Deskripsi</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Deskripsi Kategori (Opsional)
+                </label>
                 <textarea
                   name="deskripsi"
                   rows={3}
-                  placeholder="Keterangan dokumen..."
-                  className="w-full px-3 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm"
+                  placeholder="Keterangan singkat kategori dokumen..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsCatModalOpen(false)}
-                  className="px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold text-xs"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-black shadow-sm disabled:opacity-50"
                 >
-                  Simpan
+                  {isPending ? "Menyimpan..." : "Simpan Kategori"}
                 </button>
               </div>
             </form>
@@ -231,45 +269,64 @@ export default function DokumenManagerClient({ initialCategories }: { initialCat
 
       {/* File Upload Modal */}
       {isFileModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-[#1e293b] w-full max-w-md rounded-3xl p-6 border border-gray-700 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-base font-bold text-white">Unggah Berkas Dokumen</h3>
-            {errorMsg && <p className="text-xs text-red-400">{errorMsg}</p>}
-            <form onSubmit={handleAddDocument} className="space-y-3">
-              <input type="hidden" name="tipe_dokumen_id" value={selectedCatId || ""} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <i className="fa-solid fa-file-arrow-up text-emerald-600" />
+                <span>Unggah Berkas Dokumen</span>
+              </h3>
+              <button onClick={() => setIsFileModalOpen(false)} className="text-slate-400 hover:text-slate-700 p-1">
+                <i className="fa-solid fa-xmark text-lg" />
+              </button>
+            </div>
+
+            {errorMsg && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl font-semibold">
+                {errorMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleUploadFile} className="space-y-3.5">
               <div>
-                <label className="block text-xs text-gray-300 font-semibold mb-1">Nama Dokumen *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Nama Dokumen / Judul *
+                </label>
                 <input
                   type="text"
                   name="nama_dokumen"
                   required
-                  placeholder="Contoh: SK Pengurus Periode 2025-2026.pdf"
-                  className="w-full px-3 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-white text-sm"
+                  placeholder="Contoh: Formulir Pendaftaran Siswa 2026.pdf"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium"
                 />
               </div>
+
               <div>
-                <label className="block text-xs text-gray-300 font-semibold mb-1">File Berkas (PDF/Doc) *</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Pilih File Berkas (PDF, DOC, ZIP, dll) *
+                </label>
                 <input
                   type="file"
                   name="dokumen_file"
                   required
-                  className="w-full px-3 py-2 bg-[#0f172a] border border-gray-700 rounded-xl text-gray-300 text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:bg-amber-500 file:text-gray-950"
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-emerald-500 file:text-white file:font-bold hover:file:bg-emerald-600 transition-all"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsFileModalOpen(false)}
-                  className="px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold text-xs"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-black shadow-sm disabled:opacity-50"
                 >
-                  Unggah Berkas
+                  {isPending ? "Mengunggah..." : "Unggah Berkas"}
                 </button>
               </div>
             </form>

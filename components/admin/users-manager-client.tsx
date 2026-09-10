@@ -45,28 +45,31 @@ export default function UsersManagerClient({
   };
 
   return (
-    <div className="bg-[#151d2a] rounded-3xl border border-gray-800 overflow-hidden shadow-xl">
-      <div className="p-6 border-b border-gray-800 flex items-center justify-between">
+    <div className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm border-t-4 border-t-amber-500">
+      <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
         <div>
-          <h3 className="text-base font-bold text-white">Daftar Administrator Terdaftar</h3>
-          <p className="text-xs text-gray-400">Total {list.length} pengguna memiliki hak akses</p>
+          <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+            <i className="fa-solid fa-user-shield text-amber-500" />
+            <span>Daftar Administrator Terdaftar</span>
+          </h3>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">Total {list.length} pengguna memiliki kredensial dan hak akses admin</p>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs sm:text-sm">
           <thead>
-            <tr className="border-b border-gray-800 bg-[#0f172a] text-gray-400 text-[11px] uppercase tracking-wider">
-              <th className="p-4 font-semibold">Nama / Pengguna</th>
-              <th className="p-4 font-semibold">Peran Saat Ini</th>
-              <th className="p-4 font-semibold">Terdaftar Pada</th>
-              <th className="p-4 font-semibold text-right">Kelola Hak Akses</th>
+            <tr className="border-b border-slate-200 bg-slate-50/90 text-slate-600 text-[11px] uppercase tracking-wider font-extrabold">
+              <th className="py-3.5 px-5 font-bold">Nama / Pengguna</th>
+              <th className="py-3.5 px-4 font-bold">Peran Saat Ini</th>
+              <th className="py-3.5 px-4 font-bold">Terdaftar Pada</th>
+              <th className="py-3.5 px-5 font-bold text-right">Kelola Hak Akses</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800/60">
+          <tbody className="divide-y divide-slate-100">
             {list.length === 0 ? (
               <tr>
-                <td colSpan={4} className="p-8 text-center text-gray-500">
+                <td colSpan={4} className="py-12 text-center text-slate-400 font-medium">
                   Belum ada profil pengguna terdaftar.
                 </td>
               </tr>
@@ -76,55 +79,55 @@ export default function UsersManagerClient({
                 const isSuper = item.role === "super_admin";
 
                 return (
-                  <tr key={item.id} className="hover:bg-gray-800/30 transition-colors">
-                    <td className="p-4">
+                  <tr key={item.id} className="hover:bg-amber-50/30 transition-colors">
+                    <td className="py-4 px-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center font-bold text-amber-400 text-xs border border-gray-700">
+                        <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-xs shrink-0 border border-amber-200">
                           {(item.display_name || "A")[0].toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-bold text-gray-200 flex items-center gap-2">
+                          <div className="font-bold text-slate-900 flex items-center gap-2">
                             <span>{item.display_name || "Admin"}</span>
                             {isSelf && (
-                              <span className="px-2 py-0.5 rounded-full bg-gray-800 text-[10px] text-gray-400 border border-gray-700">
+                              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-[10px] text-slate-600 font-bold border border-slate-200">
                                 Akun Anda
                               </span>
                             )}
                           </div>
-                          <div className="text-[10px] text-gray-500 font-mono truncate max-w-xs">{item.id}</div>
+                          <div className="text-[10px] text-slate-400 font-mono truncate max-w-xs">{item.id}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="py-4 px-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
                           isSuper
-                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                            : "bg-blue-500/10 text-blue-400 border border-blue-500/30"
+                            ? "bg-amber-50 text-amber-800 border border-amber-200"
+                            : "bg-blue-50 text-blue-800 border border-blue-200"
                         }`}
                       >
-                        <i className={`fa-solid ${isSuper ? "fa-crown text-amber-400" : "fa-user-shield text-blue-400"} text-[10px]`} />
+                        <i className={`fa-solid ${isSuper ? "fa-crown text-amber-600" : "fa-user-shield text-blue-600"} text-xs`} />
                         <span>{isSuper ? "Super Admin" : "Admin"}</span>
                       </span>
                     </td>
-                    <td className="p-4 text-gray-400 text-xs">
+                    <td className="py-4 px-4 text-slate-500 text-xs font-medium">
                       {item.created_at ? formatIndonesianDate(item.created_at) : "-"}
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="py-4 px-5 text-right">
                       {!isSelf ? (
                         <button
                           onClick={() => handleToggleRole(item.id, item.role)}
                           disabled={isPending}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                             isSuper
-                              ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border-blue-500/30"
-                              : "bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30"
+                              ? "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                              : "bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200"
                           }`}
                         >
                           {isSuper ? "Turunkan ke Admin" : "Jadikan Super Admin"}
                         </button>
                       ) : (
-                        <span className="text-xs text-gray-500 italic">Akun aktif</span>
+                        <span className="text-xs text-slate-400 italic">Akun Anda saat ini</span>
                       )}
                     </td>
                   </tr>

@@ -31,7 +31,7 @@ export default function ResetMetricsButton() {
       onClick={handleReset}
       disabled={isPending}
       title="Reset penonton artikel dan kunjungan website ke 0"
-      className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 hover:text-red-200 font-semibold text-xs border border-red-500/30 transition-all disabled:opacity-50"
+      className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 font-semibold text-xs border border-rose-200 shadow-sm transition-all disabled:opacity-50"
     >
       <i className={`fa-solid ${isPending ? "fa-spinner fa-spin" : "fa-rotate-left"} text-xs`} />
       <span>{isPending ? "Mereset..." : "Reset Penonton & Kunjungan"}</span>

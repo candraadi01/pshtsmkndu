@@ -109,15 +109,21 @@ export default function ArticleList({ articles, query }: ArticleListProps) {
                       <Link href={`/artikel/${artikel.slug}`}>{artikel.judul}</Link>
                     </h2>
 
-                    <div className="flex items-center text-gray-500 text-xs mb-2">
-                      <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span>{formatIndonesianDate(artikel.published_at)}</span>
+                    <div className="flex items-center gap-3 text-gray-500 text-xs mb-2">
+                      <span className="inline-flex items-center gap-1">
+                        <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>{formatIndonesianDate(artikel.published_at)}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-gray-400">
+                        <i className="fa-regular fa-eye text-xs" />
+                        <span>{(artikel.view_count ?? 0).toLocaleString("id-ID")} pembaca</span>
+                      </span>
                     </div>
 
                     <div className="text-gray-600 line-clamp-3 mb-3 text-xs leading-relaxed">

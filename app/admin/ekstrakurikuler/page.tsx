@@ -19,11 +19,11 @@ export default async function AdminEkstrakurikulerPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-          <i className="fa-solid fa-award text-amber-400" />
+        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2.5 tracking-tight">
+          <i className="fa-solid fa-award text-amber-500" />
           <span>Manajemen Kegiatan Ekstrakurikuler</span>
         </h2>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-slate-500 mt-1 font-medium">
           Kelola profil kegiatan ekskul, jadwal latihan rutin, nama pembina & ketua
         </p>
       </div>

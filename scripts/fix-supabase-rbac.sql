@@ -102,10 +102,10 @@ GRANT ALL ON TABLE public.site_visits TO authenticated;
 -- Grant hak akses ke sequence id (auto increment)
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 
--- 6. PERBAIKI RLS SITE_VISITS AGAR PENGUNJUNG UMUM DAPAT MENCATAT KUNJUNGAN
+-- 6. PERBAIKI RLS SITE_VISITS AGAR PENGUNJUNG UMUM DAPAT MENCATAT KUNJUNGAN & ADMIN DAPAT MERESET
 -- ------------------------------------------------------------------------------
 GRANT INSERT ON TABLE public.site_visits TO anon, authenticated;
-GRANT SELECT ON TABLE public.site_visits TO authenticated;
+GRANT ALL ON TABLE public.site_visits TO authenticated;
 
 DROP POLICY IF EXISTS site_visits_public_insert ON public.site_visits;
 CREATE POLICY site_visits_public_insert ON public.site_visits 
@@ -114,6 +114,14 @@ CREATE POLICY site_visits_public_insert ON public.site_visits
 DROP POLICY IF EXISTS site_visits_admin_read ON public.site_visits;
 CREATE POLICY site_visits_admin_read ON public.site_visits 
     FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS site_visits_admin_delete ON public.site_visits;
+CREATE POLICY site_visits_admin_delete ON public.site_visits 
+    FOR DELETE TO authenticated USING (true);
+
+DROP POLICY IF EXISTS site_visits_admin_all ON public.site_visits;
+CREATE POLICY site_visits_admin_all ON public.site_visits 
+    FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 7. PASTIKAN TABEL PAGE_SETTINGS MEMILIKI MINIMAL 1 BARIS SEED
 -- ------------------------------------------------------------------------------

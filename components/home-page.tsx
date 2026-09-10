@@ -5,6 +5,7 @@ import useHomeMotion from "./use-home-motion";
 import motionStyles from "./home-motion.module.css";
 import SiteFooter from "./site-footer";
 import SiteHeader from "./site-header";
+import Link from "next/link";
 import { resolveMediaUrl, formatVideoEmbedUrl } from "@/lib/media";
 import type { HomeData } from "@/types/content";
 
@@ -114,7 +115,7 @@ export default function HomePage({ data }: { data: HomeData }) {
       </section>
 
       <section className="relative z-20 pt-6 md:-mt-24 md:mb-10 md:pt-0"><div className="mx-auto max-w-4xl px-4"><div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4 md:gap-8">
-        {[["fa-people-group", `${statistics.siswa}`, "Siswa Aktif", "/siswa"], ["fa-user-ninja", `${statistics.pelatih}`, "Pelatih", "/pelatih"], ["fa-users-between-lines", `${statistics.warga}`, "Warga", "/warga"], ["fa-images", `${statistics.galeri ?? 4}`, "Galeri", "/galeri"]].map(([icon, value, label, href], index) => <a data-home-reveal={["fade-right", "fade-down", "fade-down", "fade-left"][index]} data-home-card href={href} key={label} className="group rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-2xl md:p-6"><i className={`fa-solid ${icon} mb-3 block text-3xl text-black transition-transform duration-300 group-hover:scale-110 md:text-5xl`} /><div className="mb-1 text-xl font-bold text-gray-800 md:text-3xl">{value}</div><div className="text-sm font-medium text-gray-600 md:text-base">{label}</div></a>)}
+        {[["fa-people-group", `${statistics.siswa}`, "Siswa Aktif", "/siswa"], ["fa-user-ninja", `${statistics.pelatih}`, "Pelatih", "/pelatih"], ["fa-users-between-lines", `${statistics.warga}`, "Warga", "/warga"], ["fa-images", `${statistics.galeri ?? 4}`, "Galeri", "/galeri"]].map(([icon, value, label, href], index) => <Link data-home-reveal={["fade-right", "fade-down", "fade-down", "fade-left"][index]} data-home-card href={href} key={label} className="group rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-2xl md:p-6"><i className={`fa-solid ${icon} mb-3 block text-3xl text-black transition-transform duration-300 group-hover:scale-110 md:text-5xl`} /><div className="mb-1 text-xl font-bold text-gray-800 md:text-3xl">{value}</div><div className="text-sm font-medium text-gray-600 md:text-base">{label}</div></Link>)}
       </div></div></section>
 
       <div className="fixed right-2 top-1/2 z-40 flex -translate-y-1/2 flex-col gap-4">
@@ -210,17 +211,17 @@ export default function HomePage({ data }: { data: HomeData }) {
                 </div>
                 <h3 className="mb-2 text-lg font-bold text-white leading-snug">{article.judul}</h3>
                 <p className="mb-4 flex-grow text-sm text-zinc-300 line-clamp-3">{article.excerpt}</p>
-                <a href={`/artikel/${article.slug}`} className="self-end inline-flex items-center gap-1.5 rounded-full bg-zinc-800 border border-zinc-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-white hover:text-black transition-colors">
+                <Link href={`/artikel/${article.slug}`} className="self-end inline-flex items-center gap-1.5 rounded-full bg-zinc-800 border border-zinc-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-white hover:text-black transition-colors">
                   <span>Selengkapnya</span>
                   <i className="fa-solid fa-arrow-right text-[10px]" />
-                </a>
+                </Link>
               </article>
             ))}
           </div>
           <div data-home-reveal="fade-up" className="mt-8 text-center">
-            <a href="/artikel" className="inline-block rounded-full border border-white px-6 py-2 text-sm font-semibold text-white hover:bg-white hover:text-black transition-colors">
+            <Link href="/artikel" className="inline-block rounded-full border border-white px-6 py-2 text-sm font-semibold text-white hover:bg-white hover:text-black transition-colors">
               Lihat Artikel Lainnya
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -247,37 +248,37 @@ export default function HomePage({ data }: { data: HomeData }) {
                     <span>{item.created_at_formatted}</span>
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-gray-600 transition leading-snug">
-                    <a href={`/pengumuman/${item.id}`}>{item.judul}</a>
+                    <Link href={`/pengumuman/${item.id}`}>{item.judul}</Link>
                   </h3>
                   <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed mb-4">
                     {shortText(item.isi, 24)}
                   </p>
                 </div>
                 <div>
-                  <a
+                  <Link
                     href={`/pengumuman/${item.id}`}
                     className="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-semibold rounded-full bg-black text-white hover:bg-white hover:text-black border border-black transition-all duration-300"
                   >
                     <span>Lihat</span>
                     <i className="fa-solid fa-arrow-right text-[10px]" />
-                  </a>
+                  </Link>
                 </div>
               </article>
             ))}
           </div>
 
           <div data-home-reveal="fade-up" className="mt-8 text-center">
-            <a
+            <Link
               href="/pengumuman"
               className="inline-block text-black border border-black px-6 py-2 rounded-full hover:bg-black hover:text-white transition duration-300 font-medium text-sm"
             >
               Lihat Pengumuman Lainnya
-            </a>
+            </Link>
           </div>
         </div>
       </section>
 
-      <section data-home-reveal="fade-up" className="border-t-8 border-black bg-white px-4 py-12"><div className="mx-auto max-w-6xl"><h2 className="mb-8 text-center text-2xl font-bold md:text-3xl">Ekstrakurikuler</h2><div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">{demoExtracurriculars.map((item) => <a data-home-card key={item.id} href={`/ekstrakurikuler/${item.id}`} className="group block overflow-hidden rounded-xl border border-gray-100 bg-gray-50 shadow transition hover:shadow-lg"><div className="h-48 overflow-hidden bg-neutral-100"><img src={resolveMediaUrl(item.gambar)} alt={item.nama} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" /></div><div className="p-5"><h3 className="mb-2 text-lg font-bold text-gray-900 transition group-hover:text-black">{item.nama}</h3><p className="text-sm leading-relaxed text-gray-700">{shortText(item.deskripsi)}</p><span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-black group-hover:underline">Lihat Detail <i className="fa-solid fa-arrow-right text-[10px]" /></span></div></a>)}</div><div data-home-reveal="fade-up" className="mt-8 text-center"><a href="/ekstrakurikuler" className="inline-block rounded-full border border-black px-6 py-2 hover:bg-black hover:text-white">Lihat Ekstrakurikuler Lainnya</a></div></div></section>
+      <section data-home-reveal="fade-up" className="border-t-8 border-black bg-white px-4 py-12"><div className="mx-auto max-w-6xl"><h2 className="mb-8 text-center text-2xl font-bold md:text-3xl">Ekstrakurikuler</h2><div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">{demoExtracurriculars.map((item) => <Link data-home-card key={item.id} href={`/ekstrakurikuler/${item.id}`} className="group block overflow-hidden rounded-xl border border-gray-100 bg-gray-50 shadow transition hover:shadow-lg"><div className="h-48 overflow-hidden bg-neutral-100"><img src={resolveMediaUrl(item.gambar)} alt={item.nama} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" /></div><div className="p-5"><h3 className="mb-2 text-lg font-bold text-gray-900 transition group-hover:text-black">{item.nama}</h3><p className="text-sm leading-relaxed text-gray-700">{shortText(item.deskripsi)}</p><span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-black group-hover:underline">Lihat Detail <i className="fa-solid fa-arrow-right text-[10px]" /></span></div></Link>)}</div><div data-home-reveal="fade-up" className="mt-8 text-center"><Link href="/ekstrakurikuler" className="inline-block rounded-full border border-black px-6 py-2 hover:bg-black hover:text-white">Lihat Ekstrakurikuler Lainnya</Link></div></div></section>
 
       {/* Video Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-black to-gray-900 px-4 py-16">
