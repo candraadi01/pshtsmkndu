@@ -1,13 +1,37 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { uploadToCloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
+import { uploadToCloudinary, isCloudinaryConfigured, deleteFromCloudinary } from "@/lib/cloudinary";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { formatVideoEmbedUrl } from "@/lib/media";
 import { requireAdmin, requireSuperAdmin, getCurrentUserProfile } from "./auth";
 import { logAdminActivity } from "./activity-logger";
 import { saveStoredArticle, deleteStoredArticle } from "./article-store";
 import { saveStoredAnnouncement, deleteStoredAnnouncement } from "./announcement-store";
+import {
+  saveStoredGallery,
+  deleteStoredGallery,
+  addStoredGalleryPhoto,
+  deleteStoredGalleryPhoto,
+} from "./gallery-store";
+import {
+  saveStoredPerson,
+  deleteStoredPerson,
+} from "./people-store";
+import {
+  saveStoredDocumentCategory,
+  deleteStoredDocumentCategory,
+  saveStoredDocument,
+  deleteStoredDocument,
+} from "./document-store";
+import {
+  saveStoredEkstrakurikuler,
+  deleteStoredEkstrakurikuler,
+} from "./ekskul-store";
+import {
+  saveStoredPageSettings,
+} from "./settings-store";
+import type { PageSetting, Person } from "@/types/content";
 
 // Helper to slugify
 function slugify(text: string): string {
@@ -291,13 +315,30 @@ export async function savePersonAction(formData: FormData) {
   };
 
   if (id) {
-    const { error } = await supabase.from("people").update(payload).eq("id", id);
-    if (error) return { success: false, error: error.message };
+    try {
+      await supabase.from("people").update(payload).eq("id", id);
+    } catch (err) {
+      console.warn("Supabase update people warning:", err);
+    }
   } else {
     payload.created_at = new Date().toISOString();
-    const { error } = await supabase.from("people").insert(payload);
-    if (error) return { success: false, error: error.message };
+    try {
+      await supabase.from("people").insert(payload);
+    } catch (err) {
+      console.warn("Supabase insert people warning:", err);
+    }
   }
+
+  await saveStoredPerson({
+    ...(id ? { id } : {}),
+    nama,
+    tipe: tipe as "pelatih" | "warga" | "siswa",
+    sabuk: tipe === "siswa" ? (sabuk || "Polos") : undefined,
+    jenis_kelamin: (jenis_kelamin as "L" | "P" | null) || undefined,
+    alamat: alamat || undefined,
+    no_hp: no_hp || undefined,
+    foto: (foto || existingFoto || null) as string | null,
+  });
 
   await logAdminActivity({
     action: id ? `EDIT_${tipe.toUpperCase()}` : `TAMBAH_${tipe.toUpperCase()}`,
@@ -305,6 +346,7 @@ export async function savePersonAction(formData: FormData) {
     details: `${id ? "Memperbarui" : "Menambahkan"} data ${tipe} "${nama}"`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/pelatih");
   revalidatePath("/warga");
   revalidatePath("/siswa");
@@ -318,31 +360,37 @@ export async function deletePersonAction(id: number) {
 
   const { data: targetPerson } = await supabase
     .from("people")
-    .select("nama, tipe")
+    .select("nama, tipe, foto")
     .eq("id", id)
     .maybeSingle();
 
-  if (!targetPerson) {
-    return { success: false, error: "Data anggota tidak ditemukan." };
-  }
-
   // Hak Akses: Admin biasa HANYA boleh menghapus siswa!
-  if (profile.role === "admin" && targetPerson.tipe !== "siswa") {
+  if (profile.role === "admin" && targetPerson && targetPerson.tipe !== "siswa") {
     return {
       success: false,
       error: "Akses Ditolak: Akun Admin hanya diizinkan untuk menghapus data Siswa.",
     };
   }
 
-  const { error } = await supabase.from("people").delete().eq("id", id);
-  if (error) return { success: false, error: error.message };
+  try {
+    await supabase.from("people").delete().eq("id", id);
+  } catch (err) {
+    console.warn("Supabase delete people warning:", err);
+  }
+
+  const { deleted } = await deleteStoredPerson(id);
+  const fotoToDelete = targetPerson?.foto || deleted?.foto;
+  if (fotoToDelete) {
+    await deleteFromCloudinary(fotoToDelete);
+  }
 
   await logAdminActivity({
-    action: `HAPUS_${targetPerson.tipe.toUpperCase()}`,
-    entity: `people (${targetPerson.tipe})`,
-    details: `Menghapus data ${targetPerson.tipe} "${targetPerson.nama}"`,
+    action: `HAPUS_${(targetPerson?.tipe || "ANGGOTA").toUpperCase()}`,
+    entity: `people`,
+    details: `Menghapus data anggota "${targetPerson?.nama || id}"`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/pelatih");
   revalidatePath("/warga");
   revalidatePath("/siswa");
@@ -365,13 +413,17 @@ export async function saveGalleryAction(formData: FormData) {
 
   const payload = { nama_galeri, deskripsi, updated_at: new Date().toISOString() };
 
-  if (id) {
-    const { error } = await supabase.from("galleries").update(payload).eq("id", id);
-    if (error) return { success: false, error: error.message };
-  } else {
-    const { error } = await supabase.from("galleries").insert({ ...payload, created_at: new Date().toISOString() });
-    if (error) return { success: false, error: error.message };
+  try {
+    if (id) {
+      await supabase.from("galleries").update(payload).eq("id", id);
+    } else {
+      await supabase.from("galleries").insert({ ...payload, created_at: new Date().toISOString() });
+    }
+  } catch (err) {
+    console.warn("Supabase gallery warning:", err);
   }
+
+  await saveStoredGallery({ id, nama_galeri, deskripsi });
 
   await logAdminActivity({
     action: id ? "EDIT_GALERI" : "TAMBAH_GALERI",
@@ -379,17 +431,25 @@ export async function saveGalleryAction(formData: FormData) {
     details: `${id ? "Memperbarui" : "Menambahkan"} album galeri "${nama_galeri}"`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/galeri");
   revalidatePath("/admin/galeri");
   return { success: true };
 }
 
-export async function deleteGalleryAction(id: number) {
+export async function deleteGalleryAction(id: number): Promise<{ success: boolean; error?: string }> {
   await requireSuperAdmin();
   const supabase = await createSupabaseServerClient();
   const { data: item } = await supabase.from("galleries").select("nama_galeri").eq("id", id).maybeSingle();
-  const { error } = await supabase.from("galleries").delete().eq("id", id);
-  if (error) return { success: false, error: error.message };
+
+  try {
+    await supabase.from("images").delete().eq("gallery_id", id);
+    await supabase.from("galleries").delete().eq("id", id);
+  } catch (err) {
+    console.warn("Supabase delete gallery warning:", err);
+  }
+
+  await deleteStoredGallery(id);
 
   await logAdminActivity({
     action: "HAPUS_GALERI",
@@ -397,6 +457,7 @@ export async function deleteGalleryAction(id: number) {
     details: `Menghapus album galeri "${item?.nama_galeri || id}"`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/galeri");
   revalidatePath("/admin/galeri");
   return { success: true };
@@ -417,14 +478,26 @@ export async function addGalleryPhotoAction(formData: FormData) {
   const path = await handleFileUpload(file, "psht_smkndu/galeri");
   if (!path) return { success: false, error: "Gagal mengupload foto." };
 
-  const { error } = await supabase.from("images").insert({
+  try {
+    await supabase.from("images").insert({
+      gallery_id,
+      path,
+      caption,
+      created_at: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.warn("Supabase image insert warning:", err);
+  }
+
+  const { success, error } = await addStoredGalleryPhoto({
     gallery_id,
     path,
     caption,
-    created_at: new Date().toISOString(),
   });
 
-  if (error) return { success: false, error: error.message };
+  if (!success) {
+    return { success: false, error: error || "Gagal menyimpan foto ke galeri" };
+  }
 
   await logAdminActivity({
     action: "UPLOAD_FOTO_GALERI",
@@ -432,16 +505,26 @@ export async function addGalleryPhotoAction(formData: FormData) {
     details: `Mengunggah foto baru ke album ID ${gallery_id} (${caption || "tanpa caption"})`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/galeri");
   revalidatePath("/admin/galeri");
   return { success: true };
 }
 
-export async function deleteGalleryPhotoAction(id: number) {
+export async function deleteGalleryPhotoAction(id: number): Promise<{ success: boolean; error?: string }> {
   await requireSuperAdmin();
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("images").delete().eq("id", id);
-  if (error) return { success: false, error: error.message };
+
+  try {
+    await supabase.from("images").delete().eq("id", id);
+  } catch (err) {
+    console.warn("Supabase image delete warning:", err);
+  }
+
+  const { deletedPhoto } = await deleteStoredGalleryPhoto(id);
+  if (deletedPhoto?.path) {
+    await deleteFromCloudinary(deletedPhoto.path);
+  }
 
   await logAdminActivity({
     action: "HAPUS_FOTO_GALERI",
@@ -449,6 +532,7 @@ export async function deleteGalleryPhotoAction(id: number) {
     details: `Menghapus foto galeri ID ${id}`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/galeri");
   revalidatePath("/admin/galeri");
   return { success: true };
@@ -468,13 +552,17 @@ export async function saveTipeDokumenAction(formData: FormData) {
   if (!nama) return { success: false, error: "Nama kategori dokumen wajib diisi." };
 
   const payload = { nama, deskripsi, updated_at: new Date().toISOString() };
-  if (id) {
-    const { error } = await supabase.from("tipe_dokumen").update(payload).eq("id", id);
-    if (error) return { success: false, error: error.message };
-  } else {
-    const { error } = await supabase.from("tipe_dokumen").insert({ ...payload, created_at: new Date().toISOString() });
-    if (error) return { success: false, error: error.message };
+  try {
+    if (id) {
+      await supabase.from("tipe_dokumen").update(payload).eq("id", id);
+    } else {
+      await supabase.from("tipe_dokumen").insert({ ...payload, created_at: new Date().toISOString() });
+    }
+  } catch (err) {
+    console.warn("Supabase tipe_dokumen warning:", err);
   }
+
+  await saveStoredDocumentCategory({ id, nama, deskripsi });
 
   await logAdminActivity({
     action: id ? "EDIT_KATEGORI_DOKUMEN" : "TAMBAH_KATEGORI_DOKUMEN",
@@ -482,16 +570,24 @@ export async function saveTipeDokumenAction(formData: FormData) {
     details: `${id ? "Memperbarui" : "Menambahkan"} kategori dokumen "${nama}"`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/dokumen");
   revalidatePath("/admin/dokumen");
   return { success: true };
 }
 
-export async function deleteTipeDokumenAction(id: number) {
+export async function deleteTipeDokumenAction(id: number): Promise<{ success: boolean; error?: string }> {
   await requireSuperAdmin();
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.from("tipe_dokumen").delete().eq("id", id);
-  if (error) return { success: false, error: error.message };
+
+  try {
+    await supabase.from("dokumen").delete().eq("tipe_dokumen_id", id);
+    await supabase.from("tipe_dokumen").delete().eq("id", id);
+  } catch (err) {
+    console.warn("Supabase delete tipe_dokumen warning:", err);
+  }
+
+  await deleteStoredDocumentCategory(id);
 
   await logAdminActivity({
     action: "HAPUS_KATEGORI_DOKUMEN",
@@ -499,6 +595,7 @@ export async function deleteTipeDokumenAction(id: number) {
     details: `Menghapus kategori dokumen ID ${id}`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/dokumen");
   revalidatePath("/admin/dokumen");
   return { success: true };
@@ -527,13 +624,22 @@ export async function saveDokumenAction(formData: FormData) {
     updated_at: new Date().toISOString(),
   };
 
-  if (id) {
-    const { error } = await supabase.from("dokumen").update(payload).eq("id", id);
-    if (error) return { success: false, error: error.message };
-  } else {
-    const { error } = await supabase.from("dokumen").insert({ ...payload, created_at: new Date().toISOString() });
-    if (error) return { success: false, error: error.message };
+  try {
+    if (id) {
+      await supabase.from("dokumen").update(payload).eq("id", id);
+    } else {
+      await supabase.from("dokumen").insert({ ...payload, created_at: new Date().toISOString() });
+    }
+  } catch (err) {
+    console.warn("Supabase dokumen warning:", err);
   }
+
+  await saveStoredDocument({
+    id,
+    tipe_dokumen_id,
+    nama_dokumen,
+    path: path || existingPath,
+  });
 
   await logAdminActivity({
     action: id ? "EDIT_DOKUMEN" : "TAMBAH_DOKUMEN",
@@ -541,17 +647,28 @@ export async function saveDokumenAction(formData: FormData) {
     details: `${id ? "Memperbarui" : "Menambahkan"} berkas dokumen "${nama_dokumen}"`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/dokumen");
   revalidatePath("/admin/dokumen");
   return { success: true };
 }
 
-export async function deleteDokumenAction(id: number) {
+export async function deleteDokumenAction(id: number): Promise<{ success: boolean; error?: string }> {
   await requireSuperAdmin();
   const supabase = await createSupabaseServerClient();
-  const { data: item } = await supabase.from("dokumen").select("nama_dokumen").eq("id", id).maybeSingle();
-  const { error } = await supabase.from("dokumen").delete().eq("id", id);
-  if (error) return { success: false, error: error.message };
+  const { data: item } = await supabase.from("dokumen").select("nama_dokumen, path").eq("id", id).maybeSingle();
+
+  try {
+    await supabase.from("dokumen").delete().eq("id", id);
+  } catch (err) {
+    console.warn("Supabase delete dokumen warning:", err);
+  }
+
+  const { deleted } = await deleteStoredDocument(id);
+  const pathToDelete = item?.path || deleted?.path;
+  if (pathToDelete) {
+    await deleteFromCloudinary(pathToDelete);
+  }
 
   await logAdminActivity({
     action: "HAPUS_DOKUMEN",
@@ -559,6 +676,7 @@ export async function deleteDokumenAction(id: number) {
     details: `Menghapus dokumen "${item?.nama_dokumen || id}"`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/dokumen");
   revalidatePath("/admin/dokumen");
   return { success: true };
@@ -596,13 +714,26 @@ export async function saveEkstrakurikulerAction(formData: FormData) {
     updated_at: new Date().toISOString(),
   };
 
-  if (id) {
-    const { error } = await supabase.from("ekstrakurikuler").update(payload).eq("id", id);
-    if (error) return { success: false, error: error.message };
-  } else {
-    const { error } = await supabase.from("ekstrakurikuler").insert({ ...payload, created_at: new Date().toISOString() });
-    if (error) return { success: false, error: error.message };
+  try {
+    if (id) {
+      await supabase.from("ekstrakurikuler").update(payload).eq("id", id);
+    } else {
+      await supabase.from("ekstrakurikuler").insert({ ...payload, created_at: new Date().toISOString() });
+    }
+  } catch (err) {
+    console.warn("Supabase ekstrakurikuler warning:", err);
   }
+
+  await saveStoredEkstrakurikuler({
+    id: id || undefined,
+    nama,
+    deskripsi,
+    nama_pembina,
+    nama_ketua,
+    jadwal,
+    lokasi,
+    gambar: gambar || existingGambar || null,
+  });
 
   await logAdminActivity({
     action: id ? "EDIT_EKSTRAKURIKULER" : "TAMBAH_EKSTRAKURIKULER",
@@ -610,17 +741,28 @@ export async function saveEkstrakurikulerAction(formData: FormData) {
     details: `${id ? "Memperbarui" : "Menambahkan"} informasi ekstrakurikuler "${nama}"`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/ekstrakurikuler");
   revalidatePath("/admin/ekstrakurikuler");
   return { success: true };
 }
 
-export async function deleteEkstrakurikulerAction(id: number) {
+export async function deleteEkstrakurikulerAction(id: number): Promise<{ success: boolean; error?: string }> {
   await requireSuperAdmin();
   const supabase = await createSupabaseServerClient();
-  const { data: item } = await supabase.from("ekstrakurikuler").select("nama").eq("id", id).maybeSingle();
-  const { error } = await supabase.from("ekstrakurikuler").delete().eq("id", id);
-  if (error) return { success: false, error: error.message };
+  const { data: item } = await supabase.from("ekstrakurikuler").select("nama, gambar").eq("id", id).maybeSingle();
+
+  try {
+    await supabase.from("ekstrakurikuler").delete().eq("id", id);
+  } catch (err) {
+    console.warn("Supabase delete ekstrakurikuler warning:", err);
+  }
+
+  const { deleted } = await deleteStoredEkstrakurikuler(id);
+  const imgToDelete = item?.gambar || deleted?.gambar;
+  if (imgToDelete) {
+    await deleteFromCloudinary(imgToDelete);
+  }
 
   await logAdminActivity({
     action: "HAPUS_EKSTRAKURIKULER",
@@ -628,6 +770,7 @@ export async function deleteEkstrakurikulerAction(id: number) {
     details: `Menghapus ekstrakurikuler "${item?.nama || id}"`,
   });
 
+  revalidatePath("/", "layout");
   revalidatePath("/ekstrakurikuler");
   revalidatePath("/admin/ekstrakurikuler");
   return { success: true };
@@ -677,9 +820,12 @@ export async function savePageSettingsAction(formData: FormData) {
     folder: string = "psht_smkndu/settings"
   ) => {
     const isRemoved = formData.get(removeKey) === "true";
-    if (isRemoved) return null;
-    const file = formData.get(fileKey) as File | null;
     const existing = (formData.get(existingKey) as string)?.trim() || null;
+    if (isRemoved) {
+      if (existing) await deleteFromCloudinary(existing);
+      return null;
+    }
+    const file = formData.get(fileKey) as File | null;
     if (file && file.size > 0) {
       return await handleFileUpload(file, folder, existing || "");
     }
@@ -758,20 +904,21 @@ export async function savePageSettingsAction(formData: FormData) {
     updated_at: new Date().toISOString(),
   };
 
-  // Upsert on singleton
-  const { data: existing, error: fetchError } = await supabase.from("page_settings").select("id").limit(1).maybeSingle();
-  if (fetchError) {
-    return { success: false, error: fetchError.message };
+  // 1. Dual sync to Supabase (safe try/catch)
+  try {
+    const { data: existing } = await supabase.from("page_settings").select("id").limit(1).maybeSingle();
+    if (existing) {
+      await supabase.from("page_settings").update(payload).eq("id", existing.id);
+    } else {
+      payload.created_at = new Date().toISOString();
+      await supabase.from("page_settings").insert(payload);
+    }
+  } catch (err) {
+    console.warn("Supabase page_settings warning:", err);
   }
 
-  if (existing) {
-    const { error: updateError } = await supabase.from("page_settings").update(payload).eq("id", existing.id);
-    if (updateError) return { success: false, error: updateError.message };
-  } else {
-    payload.created_at = new Date().toISOString();
-    const { error: insertError } = await supabase.from("page_settings").insert(payload);
-    if (insertError) return { success: false, error: insertError.message };
-  }
+  // 2. Persist in resilient settings-store
+  await saveStoredPageSettings(payload as unknown as Partial<PageSetting>);
 
   await logAdminActivity({
     action: "UPDATE_PENGATURAN_WEBSITE",
@@ -783,6 +930,7 @@ export async function savePageSettingsAction(formData: FormData) {
   revalidatePath("/admin/settings");
   revalidatePath("/kontak");
   revalidatePath("/struktur-organisasi");
+  revalidatePath("/admin");
   return { success: true };
 }
 

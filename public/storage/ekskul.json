@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "nama": "Persaudaraan Setia Hati Terate (PSHT)",
+    "deskripsi": "Pendidikan pencak silat ajaran SH Terate yang memadukan olah fisik, teknik beladiri praktis, senam jurus, olah pernapasan rohani, serta pembentukan karakter berbudi luhur tahu benar dan salah.",
+    "nama_pembina": "Bambang Sudarsono, S.Pd.",
+    "nama_ketua": "Muhammad Rizky Pratama",
+    "jadwal": "Selasa & Jumat, 15.30 - 17.30 WIB",
+    "lokasi": "Lapangan Utama SMKN Darul Ulum Muncar",
+    "gambar": "ekstrakurikuler/01JVGWZ7GYCWBS8RTSD22G4SB1.jpeg"
+  },
+  {
+    "id": 2,
+    "nama": "Seni Bela Diri & Prestasi Tanding",
+    "deskripsi": "Pengembangan bakat atlet pencak silat kategori tanding dan seni tunggal/ganda/regu (TGR) untuk persiapan kompetisi O2SN, kejurkab, dan ajang prestasi pencak silat tingkat pelajar.",
+    "nama_pembina": "Agus Prasetyo, S.Kom.",
+    "nama_ketua": "Dimas Arya Wijaya",
+    "jadwal": "Rabu & Sabtu, 15.30 - 17.30 WIB",
+    "lokasi": "Aula Serbaguna SMKN Darul Ulum Muncar",
+    "gambar": "ekstrakurikuler/01JVKJPK3DD76355RXCDYMVG46.jpg"
+  },
+  {
+    "id": 3,
+    "nama": "Kepemudaan & Tanggap Sosial",
+    "deskripsi": "Kegiatan pembinaan kedisiplinan mental, kepedulian sosial, bakti lingkungan, serta latihan kepemimpinan organisasi siswa di lingkungan sekolah dan masyarakat.",
+    "nama_pembina": "Siti Rahmawati, M.Pd.",
+    "nama_ketua": "Ahmad Fauzi",
+    "jadwal": "Kamis, 15.30 - 17.00 WIB",
+    "lokasi": "Ruang Ekstrakurikuler & Area Terbuka Hijau",
+    "gambar": "ekstrakurikuler/01JVKJZT2413CCBF3EKCHDYC1N.jpg"
+  }
+]

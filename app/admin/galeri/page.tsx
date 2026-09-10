@@ -1,5 +1,4 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getGalleries } from "@/lib/services/galeri";
+import { getStoredGalleries } from "@/lib/services/gallery-store";
 import { requireSuperAdmin } from "@/lib/services/auth";
 import GalleryManagerClient from "@/components/admin/gallery-manager-client";
 
@@ -7,14 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminGaleriPage() {
   await requireSuperAdmin();
-  const supabase = await createSupabaseServerClient();
-  const { data: dbGalleries } = await supabase
-    .from("galleries")
-    .select("*, images(*)")
-    .order("created_at", { ascending: false });
-
-  const fallback = await getGalleries();
-  const galleries = (dbGalleries && dbGalleries.length > 0) ? dbGalleries : fallback;
+  const galleries = await getStoredGalleries();
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">

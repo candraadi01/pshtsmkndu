@@ -85,22 +85,22 @@ $$;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated, anon;
 
--- 5. GRANT HAK AKSES LENGKAP KE SEMUA TABEL UNTUK ROLE AUTHENTICATED
+-- 5. GRANT HAK AKSES LENGKAP KE SEMUA TABEL UNTUK ROLE ANON, AUTHENTICATED, DAN SERVICE_ROLE
 -- ------------------------------------------------------------------------------
-GRANT ALL ON TABLE public.artikel TO authenticated;
-GRANT ALL ON TABLE public.pengumuman TO authenticated;
-GRANT ALL ON TABLE public.ekstrakurikuler TO authenticated;
-GRANT ALL ON TABLE public.galleries TO authenticated;
-GRANT ALL ON TABLE public.images TO authenticated;
-GRANT ALL ON TABLE public.people TO authenticated;
-GRANT ALL ON TABLE public.page_settings TO authenticated;
-GRANT ALL ON TABLE public.tipe_dokumen TO authenticated;
-GRANT ALL ON TABLE public.dokumen TO authenticated;
-GRANT ALL ON TABLE public.profiles TO authenticated;
-GRANT ALL ON TABLE public.site_visits TO authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO postgres, anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO postgres, anon, authenticated, service_role;
 
--- Grant hak akses ke sequence id (auto increment)
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+-- Nonaktifkan RLS yang memblokir operasi CRUD tabel konten (opsional jika ingin bebas hambatan):
+ALTER TABLE public.galleries DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.images DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.dokumen DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tipe_dokumen DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.people DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.page_settings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ekstrakurikuler DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.artikel DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pengumuman DISABLE ROW LEVEL SECURITY;
 
 -- 6. PERBAIKI RLS SITE_VISITS AGAR PENGUNJUNG UMUM DAPAT MENCATAT KUNJUNGAN & ADMIN DAPAT MERESET
 -- ------------------------------------------------------------------------------

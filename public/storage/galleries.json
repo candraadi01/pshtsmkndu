@@ -1,0 +1,109 @@
+[
+  {
+    "id": 1,
+    "nama_galeri": "Latihan Rutin & Olah Fisik Pencak Silat",
+    "deskripsi": "Dokumentasi kegiatan pembinaan teknik beladiri, olah fisik kuda-kuda, dan pembentukan karakter pesilat di SMKN Darul Ulum Muncar.",
+    "created_at": "2025-05-15T08:00:00Z",
+    "created_at_formatted": "15 Mei 2025",
+    "images": [
+      {
+        "id": 305,
+        "gallery_id": 1,
+        "path": "https://res.cloudinary.com/dummy/image/upload/v12345/test_photo.jpg",
+        "caption": "Uji Coba Tambah Foto Otomatis",
+        "created_at": "2026-09-10T09:33:41.066Z",
+        "updated_at": "2026-09-10T09:33:41.066Z"
+      },
+      {
+        "id": 101,
+        "gallery_id": 1,
+        "path": "images/01JVNSSD76PVMPKHEA6FBCYACB.jpg",
+        "caption": "Latihan ketahanan fisik dan pematangan gerak jurus dasar"
+      },
+      {
+        "id": 102,
+        "gallery_id": 1,
+        "path": "images/01JVNSSD7F8R1RR0Q0BJ4WATEZ.jpg",
+        "caption": "Pengarahan pembina dan dewan pelatih sebelum latihan bersama"
+      },
+      {
+        "id": 103,
+        "gallery_id": 1,
+        "path": "images/01JVNSZECQ5CCD8NX16SSA1VW3.jpeg",
+        "caption": "Latihan senam jurus massal di lapangan sekolah"
+      },
+      {
+        "id": 104,
+        "gallery_id": 1,
+        "path": "images/01JVNTDS4RGBK70YJG5AQQA0C7.jpg",
+        "caption": "Pendalaman materi teknik kembangan dan sambung persaudaraan"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "nama_galeri": "Ujian Kenaikan Tingkat (UKT) & Tradisi Ke-SH-an",
+    "deskripsi": "Momen evaluasi kenaikan tingkat sabuk dan penguatan ikatan kekeluargaan sesama warga dan siswa PSHT.",
+    "created_at": "2025-04-28T09:00:00Z",
+    "created_at_formatted": "28 April 2025",
+    "images": [
+      {
+        "id": 201,
+        "gallery_id": 2,
+        "path": "images/01JVNTG59B160RYA09VTGAXNH5.jpg",
+        "caption": "Siswa berbaris khidmat pada prosesi pembukaan ujian kenaikan tingkat"
+      },
+      {
+        "id": 202,
+        "gallery_id": 2,
+        "path": "images/01JVNTG59M8TQX2ZD165S2DWMY.jpeg",
+        "caption": "Ujian ketahanan mental dan fisik siswa di hadapan para sesepuh"
+      },
+      {
+        "id": 203,
+        "gallery_id": 2,
+        "path": "images/01JVNTHV1Z1MGQ0TFYEKVYRFXT.jpg",
+        "caption": "Penyematan sabuk kelulusan tingkat oleh perwakilan pelatih"
+      },
+      {
+        "id": 204,
+        "gallery_id": 2,
+        "path": "images/01JVNTHV26M0Y6RPA5XXN41YK1.jpeg",
+        "caption": "Doa bersama dan syukuran persaudaraan setelah evaluasi materi"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "nama_galeri": "Bakti Sosial & Kepedulian Lingkungan",
+    "deskripsi": "Wujud nyata pengamalan falsafah Memayu Hayuning Bawana melalui kegiatan gotong royong dan silaturahmi dengan warga sekitar.",
+    "created_at": "2025-04-12T07:30:00Z",
+    "created_at_formatted": "12 April 2025",
+    "images": [
+      {
+        "id": 301,
+        "gallery_id": 3,
+        "path": "images/01JWF4NYAH15542KPHNF6N9TE2.jpg",
+        "caption": "Aksi bersih lingkungan bersama para siswa dan warga sekolah"
+      },
+      {
+        "id": 302,
+        "gallery_id": 3,
+        "path": "images/01JWF4NYATPAF5N9DZM87M3WHN.jpg",
+        "caption": "Gotong royong pembersihan fasilitas umum di Dusun Krajan"
+      },
+      {
+        "id": 303,
+        "gallery_id": 3,
+        "path": "images/01JWF4NYAZJPXDZ09TGTETSFAT.jpg",
+        "caption": "Penyerahan santunan dan bingkisan tali asih kepada warga"
+      },
+      {
+        "id": 304,
+        "gallery_id": 3,
+        "path": "images/01JWF4TR7VVN6ECV8NRV9HP9ZY.jpg",
+        "caption": "Foto bersama seluruh peserta bakti sosial dan pengurus rayon"
+      }
+    ]
+  }
+]

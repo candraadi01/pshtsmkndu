@@ -1,5 +1,4 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getTipeDokumenList } from "@/lib/services/dokumen";
+import { getStoredDocuments } from "@/lib/services/document-store";
 import { requireSuperAdmin } from "@/lib/services/auth";
 import DokumenManagerClient from "@/components/admin/dokumen-manager-client";
 
@@ -7,14 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDokumenPage() {
   await requireSuperAdmin();
-  const supabase = await createSupabaseServerClient();
-  const { data: dbCategories } = await supabase
-    .from("tipe_dokumen")
-    .select("*, dokumen(*)")
-    .order("created_at", { ascending: false });
-
-  const fallback = await getTipeDokumenList();
-  const categories = (dbCategories && dbCategories.length > 0) ? dbCategories : fallback;
+  const categories = await getStoredDocuments();
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">

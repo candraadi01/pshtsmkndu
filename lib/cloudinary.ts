@@ -63,3 +63,32 @@ export async function uploadToCloudinary(
     }
   });
 }
+
+/**
+ * Safely delete a file from Cloudinary given its URL or public ID.
+ * Non-blocking: will never throw if file does not exist or URL is local.
+ */
+export async function deleteFromCloudinary(urlOrPublicId: string): Promise<boolean> {
+  if (!isCloudinaryConfigured() || !urlOrPublicId) return false;
+
+  try {
+    let publicId = urlOrPublicId;
+    if (urlOrPublicId.includes("cloudinary.com")) {
+      const match = urlOrPublicId.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-zA-Z0-9]+)?$/);
+      if (match && match[1]) {
+        publicId = match[1];
+      } else {
+        return false;
+      }
+    } else if (urlOrPublicId.startsWith("/") || !urlOrPublicId.includes("/")) {
+      // Local path or demo asset, skip
+      return false;
+    }
+
+    const res = await cloudinary.uploader.destroy(publicId, { invalidate: true });
+    return res.result === "ok";
+  } catch (err) {
+    console.warn("Cloudinary delete warning:", err);
+    return false;
+  }
+}

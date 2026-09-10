@@ -1,35 +1,14 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getPeopleByType } from "@/lib/services/people";
-import { getCurrentUserProfile, requireAdmin } from "@/lib/services/auth";
+import { getStoredPeople } from "@/lib/services/people-store";
+import { requireAdmin } from "@/lib/services/auth";
 import PeopleManagerClient from "@/components/admin/people-manager-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPeoplePage() {
   const profile = await requireAdmin();
-  const supabase = await createSupabaseServerClient();
   const isSuperAdmin = profile.role === "super_admin";
 
-  let query = supabase.from("people").select("*").order("created_at", { ascending: false });
-  if (!isSuperAdmin) {
-    query = query.eq("tipe", "siswa");
-  }
-
-  const { data: dbPeople } = await query;
-
-  let peopleList: any[] = dbPeople || [];
-  if (peopleList.length === 0) {
-    if (isSuperAdmin) {
-      const [pelatih, warga, siswa] = await Promise.all([
-        getPeopleByType("pelatih"),
-        getPeopleByType("warga"),
-        getPeopleByType("siswa"),
-      ]);
-      peopleList = [...pelatih, ...warga, ...siswa];
-    } else {
-      peopleList = await getPeopleByType("siswa");
-    }
-  }
+  const peopleList = await getStoredPeople(isSuperAdmin ? undefined : "siswa");
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">

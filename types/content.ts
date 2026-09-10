@@ -123,6 +123,8 @@ export interface Person {
   jenis_kelamin?: string | null;
   alamat?: string | null;
   no_hp?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface PeopleStatistics {

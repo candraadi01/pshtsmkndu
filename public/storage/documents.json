@@ -1,0 +1,33 @@
+[
+  {
+    "id": 1,
+    "nama": "Surat Izin Orang Tua",
+    "deskripsi": "<iframe src=\"https://docs.google.com/forms/d/e/1FAIpQLSdc5-m4a5e_CzXPESxL0wUHfpJxBHRT8sNlvp55UrMz1CUZyg/viewform?embedded=true\" width=\"640\" height=\"381\" frameborder=\"0\" marginheight=\"0\" marginwidth=\"0\">Memuat formulir...</iframe>",
+    "dokumen": []
+  },
+  {
+    "id": 2,
+    "nama": "Lain-lain",
+    "deskripsi": "Berikut ini adalah beberapa dokumen pendukung yang bisa diunduh dan digunakan oleh para siswa dan calon siswa.",
+    "dokumen": [
+      {
+        "id": 2,
+        "tipe_dokumen_id": 2,
+        "nama_dokumen": "DOKUMEN PERSYARATAN 1",
+        "path": "dokumen/01JWFT36FV2AZEV1K9JCCTARQT.pdf"
+      },
+      {
+        "id": 3,
+        "tipe_dokumen_id": 2,
+        "nama_dokumen": "DOKUMEN PERSYARATAN 2",
+        "path": "dokumen/01JWFT36G28B7SGM31CZ82KBFY.pdf"
+      },
+      {
+        "id": 4,
+        "tipe_dokumen_id": 2,
+        "nama_dokumen": "DOKUMEN PERSYARATAN 3",
+        "path": "dokumen/01JWFT36G5QS86ZM51QN0H5SHV.pdf"
+      }
+    ]
+  }
+]

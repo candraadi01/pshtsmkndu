@@ -6,114 +6,113 @@ import { createOptionalSupabaseClient } from "@/lib/supabase/server";
 import { getSiteExtendedSettings } from "@/lib/services/site-settings-server";
 import { getStoredArticles } from "@/lib/services/article-store";
 import { getStoredAnnouncements } from "@/lib/services/announcement-store";
+import { getStoredPageSettings } from "@/lib/services/settings-store";
+import { getStoredEkstrakurikuler } from "@/lib/services/ekskul-store";
+import { getStoredPeople } from "@/lib/services/people-store";
+import { getStoredGalleries } from "@/lib/services/gallery-store";
 import type {
   HomeData,
   PeopleStatistics,
 } from "@/types/content";
 
-async function countPeople(client: NonNullable<ReturnType<typeof createOptionalSupabaseClient>>, tipe: string) {
-  const { count, error } = await client.from("people").select("id", { count: "exact", head: true }).eq("tipe", tipe);
-  if (error) throw error;
-  return count ?? 0;
-}
-
 export async function getHomeData(): Promise<HomeData> {
   const extendedSettings = getSiteExtendedSettings();
+
+  // Load from resilient stores
+  const [storedSettings, storedArticles, storedAnnouncements, storedEkskul, allPeople, galleries] = await Promise.all([
+    getStoredPageSettings(),
+    getStoredArticles(),
+    getStoredAnnouncements(),
+    getStoredEkstrakurikuler(),
+    getStoredPeople(),
+    getStoredGalleries(),
+  ]);
+
   const client = createOptionalSupabaseClient();
-  if (!client) {
-    return {
-      ...fallbackHomeData,
-      extendedSettings,
-    };
-  }
+  let dbSettings: any = null;
+  let dbArticles: any = null;
+  let dbAnnouncements: any = null;
+  let dbExtracurriculars: any = null;
 
-  try {
-    const [settings, articles, announcements, extracurriculars, siswa, pelatih, warga, galleries] = await Promise.all([
-      client.from("page_settings").select("*").limit(1).maybeSingle(),
-      client.from("artikel").select("*").eq("status", "published").order("view_count", { ascending: false }).limit(3),
-      client.from("pengumuman").select("*").order("created_at", { ascending: false }).limit(2),
-      client.from("ekstrakurikuler").select("*").order("nama", { ascending: true }),
-      countPeople(client, "siswa"), countPeople(client, "pelatih"), countPeople(client, "warga"),
-      client.from("galleries").select("id", { count: "exact", head: true }),
-    ]);
-
-    const queryError = settings.error ?? articles.error ?? announcements.error ?? extracurriculars.error;
-    if (queryError) throw queryError;
-
-    const hasData = Boolean(
-      settings.data ||
-      (articles.data && articles.data.length > 0) ||
-      (announcements.data && announcements.data.length > 0) ||
-      (extracurriculars.data && extracurriculars.data.length > 0)
-    );
-
-    if (!hasData) {
-      return fallbackHomeData;
+  if (client) {
+    try {
+      const [sRes, aRes, pRes, eRes] = await Promise.all([
+        client.from("page_settings").select("*").limit(1).maybeSingle(),
+        client.from("artikel").select("*").eq("status", "published").order("view_count", { ascending: false }).limit(3),
+        client.from("pengumuman").select("*").order("created_at", { ascending: false }).limit(2),
+        client.from("ekstrakurikuler").select("*").order("nama", { ascending: true }),
+      ]);
+      dbSettings = sRes.data;
+      dbArticles = aRes.data;
+      dbAnnouncements = pRes.data;
+      dbExtracurriculars = eRes.data;
+    } catch {
+      // Ignore Supabase fetch errors, use stored data
     }
-
-    const rawSetting = settings.data ?? fallbackHomeData.pageSetting;
-    const pageSetting = {
-      ...fallbackHomeData.pageSetting,
-      ...rawSetting,
-      logo: rawSetting.logo || fallbackHomeData.pageSetting.logo,
-      gambar_hero: rawSetting.gambar_hero || fallbackHomeData.pageSetting.gambar_hero,
-      gambar_hero1: rawSetting.gambar_hero1 || fallbackHomeData.pageSetting.gambar_hero1,
-      gambar_hero2: rawSetting.gambar_hero2 || fallbackHomeData.pageSetting.gambar_hero2,
-      gambar_hero3: rawSetting.gambar_hero3 || fallbackHomeData.pageSetting.gambar_hero3,
-      judul_sejarah: rawSetting.judul_sejarah || fallbackHomeData.pageSetting.judul_sejarah,
-      deskripsi_sejarah: rawSetting.deskripsi_sejarah || fallbackHomeData.pageSetting.deskripsi_sejarah,
-      gambar_sejarah: rawSetting.gambar_sejarah || fallbackHomeData.pageSetting.gambar_sejarah,
-      gambar_sejarah1: rawSetting.gambar_sejarah1 || fallbackHomeData.pageSetting.gambar_sejarah1,
-      gambar_sejarah2: rawSetting.gambar_sejarah2 || fallbackHomeData.pageSetting.gambar_sejarah2,
-      gambar_sejarah3: rawSetting.gambar_sejarah3 || fallbackHomeData.pageSetting.gambar_sejarah3,
-      judul_video: rawSetting.judul_video || fallbackHomeData.pageSetting.judul_video,
-      deskripsi_video: rawSetting.deskripsi_video || fallbackHomeData.pageSetting.deskripsi_video,
-      url_video: rawSetting.url_video || fallbackHomeData.pageSetting.url_video,
-      url_video1: rawSetting.url_video1 || fallbackHomeData.pageSetting.url_video1,
-      url_video2: rawSetting.url_video2 || fallbackHomeData.pageSetting.url_video2,
-    };
-    const storedArticles = await getStoredArticles();
-    const popularArticles = articles.data && articles.data.length > 0
-      ? (articles.data as SupabaseArtikelRow[]).map(mapArtikel)
-      : storedArticles.slice(0, 3).map((a) => mapArtikel(a as unknown as SupabaseArtikelRow));
-
-    const storedAnnouncements = await getStoredAnnouncements();
-    const mappedAnnouncements = announcements.data && announcements.data.length > 0
-      ? (announcements.data as SupabasePengumumanRow[]).map(mapPengumuman)
-      : storedAnnouncements.slice(0, 2).map((a) => mapPengumuman(a as unknown as SupabasePengumumanRow));
-
-    const mappedExtracurriculars = extracurriculars.data && extracurriculars.data.length > 0
-      ? (extracurriculars.data as SupabaseEkstrakurikulerRow[]).map(mapEkstrakurikuler)
-      : fallbackHomeData.extracurriculars;
-
-    const totalPeople = siswa + pelatih + warga;
-    const galleryCount = galleries.count ?? fallbackHomeData.statistics.galeri ?? 4;
-    const computedStatistics: PeopleStatistics = totalPeople > 0 || (extracurriculars.data && extracurriculars.data.length > 0) || (galleries.count !== null && galleries.count > 0)
-      ? { siswa, pelatih, warga, ekstrakurikuler: mappedExtracurriculars.length, galeri: galleryCount }
-      : fallbackHomeData.statistics;
-
-    const statistics: PeopleStatistics = {
-      siswa: extendedSettings.stat_siswa_override ?? computedStatistics.siswa,
-      pelatih: extendedSettings.stat_pelatih_override ?? computedStatistics.pelatih,
-      warga: extendedSettings.stat_warga_override ?? computedStatistics.warga,
-      galeri: extendedSettings.stat_galeri_override ?? computedStatistics.galeri,
-      ekstrakurikuler: computedStatistics.ekstrakurikuler,
-    };
-
-    return {
-      pageSetting,
-      popularArticles,
-      announcements: mappedAnnouncements,
-      extracurriculars: mappedExtracurriculars,
-      statistics,
-      extendedSettings,
-      source: "supabase",
-    };
-  } catch (error) {
-    console.warn("Supabase Home adapter memakai fallback:", error);
-    return {
-      ...fallbackHomeData,
-      extendedSettings,
-    };
   }
+
+  const rawSetting = dbSettings || storedSettings || fallbackHomeData.pageSetting;
+  const pageSetting = {
+    ...fallbackHomeData.pageSetting,
+    ...storedSettings,
+    ...rawSetting,
+    logo: rawSetting.logo || storedSettings.logo || fallbackHomeData.pageSetting.logo,
+    gambar_hero: rawSetting.gambar_hero ?? storedSettings.gambar_hero,
+    gambar_hero1: rawSetting.gambar_hero1 ?? storedSettings.gambar_hero1,
+    gambar_hero2: rawSetting.gambar_hero2 ?? storedSettings.gambar_hero2,
+    gambar_hero3: rawSetting.gambar_hero3 ?? storedSettings.gambar_hero3,
+    judul_sejarah: rawSetting.judul_sejarah || storedSettings.judul_sejarah || fallbackHomeData.pageSetting.judul_sejarah,
+    deskripsi_sejarah: rawSetting.deskripsi_sejarah || storedSettings.deskripsi_sejarah || fallbackHomeData.pageSetting.deskripsi_sejarah,
+    gambar_sejarah: rawSetting.gambar_sejarah ?? storedSettings.gambar_sejarah,
+    gambar_sejarah1: rawSetting.gambar_sejarah1 ?? storedSettings.gambar_sejarah1,
+    gambar_sejarah2: rawSetting.gambar_sejarah2 ?? storedSettings.gambar_sejarah2,
+    gambar_sejarah3: rawSetting.gambar_sejarah3 ?? storedSettings.gambar_sejarah3,
+    judul_video: rawSetting.judul_video || storedSettings.judul_video || fallbackHomeData.pageSetting.judul_video,
+    deskripsi_video: rawSetting.deskripsi_video || storedSettings.deskripsi_video || fallbackHomeData.pageSetting.deskripsi_video,
+    url_video: rawSetting.url_video ?? storedSettings.url_video,
+    url_video1: rawSetting.url_video1 ?? storedSettings.url_video1,
+    url_video2: rawSetting.url_video2 ?? storedSettings.url_video2,
+  };
+
+  const popularArticles = dbArticles && dbArticles.length > 0
+    ? (dbArticles as SupabaseArtikelRow[]).map(mapArtikel)
+    : storedArticles.slice(0, 3).map((a) => mapArtikel(a as unknown as SupabaseArtikelRow));
+
+  const mappedAnnouncements = dbAnnouncements && dbAnnouncements.length > 0
+    ? (dbAnnouncements as SupabasePengumumanRow[]).map(mapPengumuman)
+    : storedAnnouncements.slice(0, 2).map((a) => mapPengumuman(a as unknown as SupabasePengumumanRow));
+
+  const mappedExtracurriculars = dbExtracurriculars && dbExtracurriculars.length > 0
+    ? (dbExtracurriculars as SupabaseEkstrakurikulerRow[]).map(mapEkstrakurikuler)
+    : storedEkskul;
+
+  const siswaCount = allPeople.filter((p) => p.tipe === "siswa").length;
+  const pelatihCount = allPeople.filter((p) => p.tipe === "pelatih").length;
+  const wargaCount = allPeople.filter((p) => p.tipe === "warga").length;
+
+  const computedStatistics: PeopleStatistics = {
+    siswa: siswaCount || fallbackHomeData.statistics.siswa,
+    pelatih: pelatihCount || fallbackHomeData.statistics.pelatih,
+    warga: wargaCount || fallbackHomeData.statistics.warga,
+    ekstrakurikuler: mappedExtracurriculars.length || fallbackHomeData.statistics.ekstrakurikuler,
+    galeri: galleries.length || fallbackHomeData.statistics.galeri,
+  };
+
+  const statistics: PeopleStatistics = {
+    siswa: extendedSettings.stat_siswa_override ?? computedStatistics.siswa,
+    pelatih: extendedSettings.stat_pelatih_override ?? computedStatistics.pelatih,
+    warga: extendedSettings.stat_warga_override ?? computedStatistics.warga,
+    galeri: extendedSettings.stat_galeri_override ?? computedStatistics.galeri,
+    ekstrakurikuler: computedStatistics.ekstrakurikuler,
+  };
+
+  return {
+    pageSetting,
+    popularArticles,
+    announcements: mappedAnnouncements,
+    extracurriculars: mappedExtracurriculars,
+    statistics,
+    extendedSettings,
+    source: dbSettings ? "supabase" : "fallback",
+  };
 }

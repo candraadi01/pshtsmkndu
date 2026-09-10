@@ -1,5 +1,4 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getExtracurriculars } from "@/lib/services/ekstrakurikuler";
+import { getStoredEkstrakurikuler } from "@/lib/services/ekskul-store";
 import { requireSuperAdmin } from "@/lib/services/auth";
 import EkstrakurikulerManagerClient from "@/components/admin/ekstrakurikuler-manager-client";
 
@@ -7,14 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminEkstrakurikulerPage() {
   await requireSuperAdmin();
-  const supabase = await createSupabaseServerClient();
-  const { data: dbData } = await supabase
-    .from("ekstrakurikuler")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  const fallback = await getExtracurriculars();
-  const items = (dbData && dbData.length > 0) ? dbData : fallback;
+  const items = await getStoredEkstrakurikuler();
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
